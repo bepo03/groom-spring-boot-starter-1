@@ -3,7 +3,7 @@ package com.study.profile_stack_api.domain.profile.dao;
 import com.study.profile_stack_api.domain.profile.entity.Position;
 import com.study.profile_stack_api.domain.profile.entity.Profile;
 import com.study.profile_stack_api.global.common.Page;
-import com.study.profile_stack_api.global.exception.ProfileNotFoundException;
+import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

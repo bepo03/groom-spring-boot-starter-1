@@ -7,6 +7,7 @@ import com.study.profile_stack_api.domain.techstack.dto.response.TechStackRespon
 import com.study.profile_stack_api.domain.techstack.service.TechStackService;
 import com.study.profile_stack_api.global.common.ApiResponse;
 import com.study.profile_stack_api.global.common.Page;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class TechStackController {
     public ResponseEntity<ApiResponse<TechStackResponse>> createTechStackByProfileId(
             @PathVariable
             Long profileId,
+            @Valid
             @RequestBody
             TechStackCreateRequest request
     ) {
@@ -181,6 +183,7 @@ public class TechStackController {
             Long profileId,
             @PathVariable
             Long id,
+            @Valid
             @RequestBody
             TechStackUpdateRequest request
     ) {

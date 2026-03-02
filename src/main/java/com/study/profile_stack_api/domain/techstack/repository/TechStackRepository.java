@@ -1,7 +1,7 @@
 package com.study.profile_stack_api.domain.techstack.repository;
 
 import com.study.profile_stack_api.domain.techstack.entity.TechStack;
-import com.study.profile_stack_api.global.exception.TechStackNotFoundException;
+import com.study.profile_stack_api.domain.techstack.exception.TechStackNotFoundException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Repository;

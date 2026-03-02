@@ -1,4 +1,4 @@
-package com.study.profile_stack_api.domain.profile.validation;
+package com.study.profile_stack_api.global.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

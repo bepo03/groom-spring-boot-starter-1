@@ -10,8 +10,8 @@ import com.study.profile_stack_api.domain.profile.dto.response.ProfileResponse;
 import com.study.profile_stack_api.domain.profile.entity.Position;
 import com.study.profile_stack_api.domain.profile.entity.Profile;
 import com.study.profile_stack_api.global.common.Page;
-import com.study.profile_stack_api.global.exception.DuplicateEmailException;
-import com.study.profile_stack_api.global.exception.ProfileNotFoundException;
+import com.study.profile_stack_api.domain.profile.exception.DuplicateEmailException;
+import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,8 +42,10 @@ public class ProfileService {
      * @return 생성된 프로필 응담 DTO
      */
     public ProfileResponse createProfile(ProfileCreateRequest request) {
-        // 유효성 검증
-        validataCreateRequest(request);
+        // 이메일 유효성 검증
+        if (profileDao.existsByEmail(request.getEmail())) {
+            throw new DuplicateEmailException(request.getEmail());
+        }
 
         // DTO -> Entity변환
         Profile profile = Profile.builder()
@@ -297,8 +299,10 @@ public class ProfileService {
             throw new IllegalArgumentException("수정 내용이 없습니다.");
         }
 
-        // 수정값 유효성 검증
-        validataUpdateRequest(id, request);
+        // 이메일 유효성 검증
+        if (profileDao.existsByEmailAndIdNot(id, request.getEmail())) {
+            throw new DuplicateEmailException(request.getEmail());
+        }
 
         // 직무 변환 (Null 아닌 경우에만)
         Position position = null;
@@ -358,23 +362,6 @@ public class ProfileService {
 
         // 삭제 결과 반환
         return ProfileDeleteAllResponse.of(deleteCount);
-    }
-
-    // ==================== VALIDATION ====================
-
-    /**
-     * 생성 요청 유효성 검증
-     */
-    private void validataCreateRequest(ProfileCreateRequest request) {
-        if (profileDao.existsByEmail(request.getEmail())) {
-            throw new DuplicateEmailException(request.getEmail());
-        }
-    }
-
-    public void validataUpdateRequest(Long id,ProfileUpdateRequest request) {
-        if (profileDao.existsByEmailAndIdNot(id, request.getEmail())) {
-            throw new DuplicateEmailException(request.getEmail());
-        }
     }
 
     // ==================== PRIVATE METHODS ====================

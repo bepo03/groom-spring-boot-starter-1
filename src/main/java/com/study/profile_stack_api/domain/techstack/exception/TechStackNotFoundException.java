@@ -1,4 +1,7 @@
-package com.study.profile_stack_api.global.exception;
+package com.study.profile_stack_api.domain.techstack.exception;
+
+import com.study.profile_stack_api.global.exception.BusinessException;
+import com.study.profile_stack_api.global.exception.ErrorCode;
 
 public class TechStackNotFoundException extends BusinessException {
     public TechStackNotFoundException(Long id) {

@@ -1,7 +1,7 @@
 package com.study.profile_stack_api.domain.techstack.service;
 
 import com.study.profile_stack_api.domain.profile.dao.ProfileDao;
-import com.study.profile_stack_api.domain.profile.entity.Profile;
+import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import com.study.profile_stack_api.domain.techstack.dao.TechStackDao;
 import com.study.profile_stack_api.domain.techstack.dto.request.TechStackCreateRequest;
 import com.study.profile_stack_api.domain.techstack.dto.request.TechStackUpdateRequest;
@@ -10,9 +10,8 @@ import com.study.profile_stack_api.domain.techstack.dto.response.TechStackRespon
 import com.study.profile_stack_api.domain.techstack.entity.Proficiency;
 import com.study.profile_stack_api.domain.techstack.entity.TechCategory;
 import com.study.profile_stack_api.domain.techstack.entity.TechStack;
+import com.study.profile_stack_api.domain.techstack.exception.TechStackNotFoundException;
 import com.study.profile_stack_api.global.common.Page;
-import com.study.profile_stack_api.global.exception.ProfileNotFoundException;
-import com.study.profile_stack_api.global.exception.TechStackNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,16 +45,14 @@ public class TechStackService {
      * @return 생성된 기술 스택 응담 DTO
      */
     public TechStackResponse createTechStackByProfileId(Long profileId, TechStackCreateRequest request) {
-        // 유효성 검증
-        validataCreateRequest(request);
 
         // FK 검증
-        Profile profile = validataProfileId(profileId);
+        validataProfileId(profileId);
 
         // DTO -> Entity변환
         TechStack techStack = TechStack.builder()
                 .id(null)
-                .profileId(profile.getId())
+                .profileId(profileId)
                 .name(request.getName())
                 .category(TechCategory.valueOf(request.getCategory()))
                 .proficiency(Proficiency.valueOf(request.getProficiency()))
@@ -299,9 +296,6 @@ public class TechStackService {
             throw new IllegalArgumentException("수정 내용이 없습니다.");
         }
 
-        // 수정값 유효성 검증
-        validataUpdateRequest(request);
-
         // 기술 카테고리 및 숙련도 변환 (Null 아닌 경우에만)
         TechCategory category = null;
         Proficiency proficiency = null;
@@ -383,59 +377,9 @@ public class TechStackService {
     /**
      * 프로필과 기술 스택의 FK 검증
      */
-    private Profile validataProfileId(Long profileId) {
-        return profileDao.findById(profileId)
-                .orElseThrow(() -> new ProfileNotFoundException(profileId));
-    }
-
-    /**
-     * 생성 요청 유효성 검증
-     */
-    private void validataCreateRequest(TechStackCreateRequest request) {
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("기술명은 필수입니다.");
-        }
-
-        if (request.getName().length() > 50) {
-            throw new IllegalArgumentException("기술명은 50자를 초과할 수 없습니다.");
-        }
-
-        if (request.getCategory() == null || request.getCategory().trim().isEmpty()) {
-            throw new IllegalArgumentException("기술 카테고리는 필수입니다.");
-        }
-
-        if (request.getProficiency() == null || request.getProficiency().trim().isEmpty()) {
-            throw new IllegalArgumentException("숙련도는 필수입니다.");
-        }
-
-        if (request.getYearsOfExp() == null || request.getYearsOfExp() < 0) {
-            throw new IllegalArgumentException("사용 경험은 0년 이상이어야 합니다.");
-        }
-    }
-
-    /**
-     * 수정 요청 유효성 검증
-     */
-    public void validataUpdateRequest(TechStackUpdateRequest request) {
-        if (request.getName() != null) {
-            if (request.getName().trim().isEmpty()) {
-                throw new IllegalArgumentException("기술명은 빈 값일 수 없습니다.");
-            }
-            if (request.getName().length() > 50) {
-                throw new IllegalArgumentException("기술명은 50자를 초과할 수 없습니다.");
-            }
-        }
-
-        if (request.getCategory() != null && request.getCategory().trim().isEmpty()) {
-            throw new IllegalArgumentException("기술 카테고리는 빈 값일 수 없습니다.");
-        }
-
-        if (request.getProficiency() != null && request.getProficiency().trim().isEmpty()) {
-            throw new IllegalArgumentException("숙련도는 빈 값일 수 없습니다.");
-        }
-
-        if (request.getYearsOfExp() != null && request.getYearsOfExp() < 0) {
-            throw new IllegalArgumentException("사용 경험은 0년 이상이어야 합니다.");
+    private void validataProfileId(Long profileId) {
+        if (!profileDao.existsById(profileId)) {
+            throw new ProfileNotFoundException(profileId);
         }
     }
 }

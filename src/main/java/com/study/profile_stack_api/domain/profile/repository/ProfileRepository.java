@@ -2,7 +2,7 @@ package com.study.profile_stack_api.domain.profile.repository;
 
 import com.study.profile_stack_api.domain.profile.entity.Position;
 import com.study.profile_stack_api.domain.profile.entity.Profile;
-import com.study.profile_stack_api.global.exception.ProfileNotFoundException;
+import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Repository;
