@@ -9,9 +9,10 @@ import com.study.profile_stack_api.domain.profile.dto.response.ProfileDeleteResp
 import com.study.profile_stack_api.domain.profile.dto.response.ProfileResponse;
 import com.study.profile_stack_api.domain.profile.entity.Position;
 import com.study.profile_stack_api.domain.profile.entity.Profile;
-import com.study.profile_stack_api.global.common.Page;
 import com.study.profile_stack_api.domain.profile.exception.DuplicateEmailException;
 import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
+import com.study.profile_stack_api.domain.profile.mapper.ProfileMapper;
+import com.study.profile_stack_api.global.common.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * 프로필 서비스
@@ -28,8 +28,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
-    /** 의존성 주입: DAO 인터페이스 */
+    /** 의존성 주입 */
     private final ProfileDao profileDao;
+    private final ProfileMapper profileMapper;
 
     /** 페이징 관련 상수 */
     private static final int MAX_PAGE_SIZE = 100;
@@ -48,22 +49,13 @@ public class ProfileService {
         }
 
         // DTO -> Entity변환
-        Profile profile = Profile.builder()
-                .id(null)
-                .name(request.getName())
-                .email(request.getEmail())
-                .bio(request.getBio())
-                .position(Position.valueOf(request.getPosition()))
-                .careerYears(request.getCareerYears())
-                .githubUrl(request.getGithubUrl())
-                .blogUrl(request.getBlogUrl())
-                .build();
+        Profile profile = profileMapper.toEntity(request);
 
         // 저장
         Profile savedProfile = profileDao.save(profile);
 
         // Entity -> Response DTO 변환 후 반환
-        return ProfileResponse.from(savedProfile);
+        return profileMapper.toResponse(savedProfile);
     }
 
     // ==================== READ ====================
@@ -78,9 +70,7 @@ public class ProfileService {
         List<Profile> profiles = profileDao.findAll();
 
         // Entity 리스트 -> Response DTO 리스트로 변환
-        return profiles.stream()
-                .map(ProfileResponse::from)
-                .collect(Collectors.toList());
+        return profileMapper.toResponseList(profiles);
     }
 
     /**
@@ -111,9 +101,7 @@ public class ProfileService {
         }
 
         // Entity 리스트 -> Response DTO 리스트로 변환
-        return profiles.stream()
-                .map(ProfileResponse::from)
-                .collect(Collectors.toList());
+        return profileMapper.toResponseList(profiles);
     }
 
     /**
@@ -128,7 +116,7 @@ public class ProfileService {
                 .orElseThrow(() -> new ProfileNotFoundException(id));
 
         // Entity -> Response DTO로 변환
-        return ProfileResponse.from(profile);
+        return profileMapper.toResponse(profile);
     }
 
     /**
@@ -152,9 +140,7 @@ public class ProfileService {
         List<Profile> profiles = profileDao.findByPosition(position);
 
         // Entity 리스트 -> Response DTO 리스트로 변환
-        return profiles.stream()
-                .map(ProfileResponse::from)
-                .collect(Collectors.toList());
+        return profileMapper.toResponseList(profiles);
     }
 
     /**
@@ -192,9 +178,7 @@ public class ProfileService {
         Page<Profile> profilePage = profileDao.findAllWithPaging(page, size);
 
         // Entity -> DTO 변환
-        List<ProfileResponse> content = profilePage.getContent().stream()
-                .map(ProfileResponse::from)
-                .toList();
+        List<ProfileResponse> content = profileMapper.toResponseList(profilePage.getContent());
 
         // Page<Entity>를 Page<DTO>로 변환 및 반환
         return new Page<>(content, page, size, profilePage.getTotalElements());
@@ -222,9 +206,7 @@ public class ProfileService {
         Page<Profile> profilePage = profileDao.findByPositionWithPaging(positionName.toUpperCase(), page, size);
 
         // Entity -> DTO 변환
-        List<ProfileResponse> content = profilePage.getContent().stream()
-                .map(ProfileResponse::from)
-                .toList();
+        List<ProfileResponse> content = profileMapper.toResponseList(profilePage.getContent());
 
         // Page<Entity>를 Page<DTO>로 변환 및 반환
         return new Page<>(content, page, size, profilePage.getTotalElements());
@@ -257,9 +239,7 @@ public class ProfileService {
         Page<Profile> profilePage = profileDao.searchWithPaging(nameKeyword, position, page, size);
 
         // Entity -> DTO 변환
-        List<ProfileResponse> content = profilePage.getContent().stream()
-                .map(ProfileResponse::from)
-                .toList();
+        List<ProfileResponse> content = profileMapper.toResponseList(profilePage.getContent());
 
         // Page<Entity>를 Page<DTO>로 변환 및 반환
         return new Page<>(content, page, size, profilePage.getTotalElements());
@@ -294,40 +274,26 @@ public class ProfileService {
         Profile profile = profileDao.findById(id)
                 .orElseThrow(() -> new ProfileNotFoundException(id));
 
-        // 수정 내용 있는지 확인
-        if (request.hashNoUpdates()) {
-            throw new IllegalArgumentException("수정 내용이 없습니다.");
-        }
-
         // 이메일 유효성 검증
         if (profileDao.existsByEmailAndIdNot(id, request.getEmail())) {
             throw new DuplicateEmailException(request.getEmail());
         }
 
-        // 직무 변환 (Null 아닌 경우에만)
-        Position position = null;
+        // 직무 유효성 검증
         if (request.getPosition() != null) {
             try {
-                position = Position.valueOf(request.getPosition().toUpperCase());
+                request.setPosition(Position.valueOf(request.getPosition().toUpperCase()).name());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("유효하지 않은 직무 입니다.");
             }
         }
 
         // Entity 업데이트 (Null이 아닌 값만 반영)
-        profile.update(
-                request.getName(),
-                request.getEmail(),
-                request.getBio(),
-                position,
-                request.getCareerYears(),
-                request.getGithubUrl(),
-                request.getBlogUrl()
-        );
+        profileMapper.updateEntity(request, profile);
 
         // 저장 및 응답 반환
         Profile updatedProfile = profileDao.update(profile);
-        return ProfileResponse.from(updatedProfile);
+        return profileMapper.toResponse(updatedProfile);
     }
 
     // ==================== DELETE ====================

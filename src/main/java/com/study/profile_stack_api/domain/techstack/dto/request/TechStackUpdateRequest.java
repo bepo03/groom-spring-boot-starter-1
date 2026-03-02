@@ -27,15 +27,4 @@ public class TechStackUpdateRequest {
 
     @Min(value = 0, message = "사용 경험은 0년 이상이어야 합니다.")
     private Integer yearsOfExp;
-
-    /**
-     * 모든 필드가 Null인지 확인
-     * 아무것도 수정할 내용이 없는 경우 체크용
-     */
-    public boolean hashNoUpdates() {
-        return name == null
-                && category == null
-                && proficiency == null
-                && yearsOfExp == null;
-    }
 }

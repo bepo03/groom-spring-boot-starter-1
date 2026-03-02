@@ -39,18 +39,4 @@ public class ProfileUpdateRequest {
 
     @Size(max = 200, message = "블로그 주소는 200자를 초과할 수 없습니다.")
     private String blogUrl;
-
-    /**
-     * 모든 필드가 Null인지 확인
-     * 아무것도 수정할 내용이 없는 경우 체크용
-     */
-    public boolean hashNoUpdates() {
-        return name == null
-                && email == null
-                && bio == null
-                && position == null
-                && careerYears == null
-                && githubUrl == null
-                && blogUrl == null;
-    }
 }

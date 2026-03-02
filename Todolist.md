@@ -77,13 +77,13 @@
 
 ### Phase 3: MapStruct 적용
 
-- [ ]  `build.gradle`에 MapStruct 의존성 추가 (annotationProcessor 순서 주의: Lombok → MapStruct)
-- [ ]  `ProfileMapper` 인터페이스 작성 (`toEntity`, `toResponse`, `toResponseList`, `updateEntity`)
-- [ ]  `TechStackMapper` 인터페이스 작성 (`toEntity`, `toResponse`, `toResponseList`, `updateEntity`)
-- [ ]  `ProfileService`에서 수동 매핑 코드를 `ProfileMapper` 호출로 교체
-- [ ]  `TechStackService`에서 수동 매핑 코드를 `TechStackMapper` 호출로 교체
-- [ ]  빌드 후 `build/generated/sources/annotationProcessor`에 Mapper 구현체 생성 확인
-- [ ]  Postman으로 CRUD API 동작 확인
+- [x]  `build.gradle`에 MapStruct 의존성 추가 (annotationProcessor 순서 주의: Lombok → MapStruct)
+- [x]  `ProfileMapper` 인터페이스 작성 (`toEntity`, `toResponse`, `toResponseList`, `updateEntity`)
+- [x]  `TechStackMapper` 인터페이스 작성 (`toEntity`, `toResponse`, `toResponseList`, `updateEntity`)
+- [x]  `ProfileService`에서 수동 매핑 코드를 `ProfileMapper` 호출로 교체
+- [x]  `TechStackService`에서 수동 매핑 코드를 `TechStackMapper` 호출로 교체
+- [x]  빌드 후 `build/generated/sources/annotationProcessor`에 Mapper 구현체 생성 확인
+- [x]  Postman으로 CRUD API 동작 확인
 
 ### Phase 4: Spring Security — 회원 도메인 및 JWT 기반 구현
 

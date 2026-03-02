@@ -11,6 +11,7 @@ import com.study.profile_stack_api.domain.techstack.entity.Proficiency;
 import com.study.profile_stack_api.domain.techstack.entity.TechCategory;
 import com.study.profile_stack_api.domain.techstack.entity.TechStack;
 import com.study.profile_stack_api.domain.techstack.exception.TechStackNotFoundException;
+import com.study.profile_stack_api.domain.techstack.mapper.TechStackMapper;
 import com.study.profile_stack_api.global.common.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 기술 스택 서비스
@@ -28,9 +28,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TechStackService {
-    /** 의존성 주입: Repository */
+    /** 의존성 주입 */
     private final TechStackDao techStackDao;
     private final ProfileDao profileDao;
+    private final TechStackMapper techStackMapper;
 
     /** 페이징 관련 상수 */
     private static final int MAX_PAGE_SIZE = 100;
@@ -50,20 +51,13 @@ public class TechStackService {
         validataProfileId(profileId);
 
         // DTO -> Entity변환
-        TechStack techStack = TechStack.builder()
-                .id(null)
-                .profileId(profileId)
-                .name(request.getName())
-                .category(TechCategory.valueOf(request.getCategory()))
-                .proficiency(Proficiency.valueOf(request.getProficiency()))
-                .yearsOfExp(request.getYearsOfExp())
-                .build();
+        TechStack techStack = techStackMapper.toEntity(request);
 
         // 저장
         TechStack savedTechStack = techStackDao.saveByProfileId(profileId, techStack);
 
         // Entity -> Response DTO 변환 후 반환
-        return TechStackResponse.from(savedTechStack);
+        return techStackMapper.toResponse(savedTechStack);
     }
 
     // ==================== READ ====================
@@ -82,9 +76,7 @@ public class TechStackService {
         List<TechStack> techStacks = techStackDao.findAllByProfileId(profileId);
 
         // Entity 리스트 -> Response DTO 리스트로 변환
-        return techStacks.stream()
-                .map(TechStackResponse::from)
-                .collect(Collectors.toList());
+        return techStackMapper.toResponseList(techStacks);
     }
 
     /**
@@ -132,9 +124,7 @@ public class TechStackService {
         }
 
         // Entity 리스트 -> Response DTO 리스트로 변환
-        return techStacks.stream()
-                .map(TechStackResponse::from)
-                .collect(Collectors.toList());
+        return techStackMapper.toResponseList(techStacks);
     }
 
     /**
@@ -153,7 +143,7 @@ public class TechStackService {
                 .orElseThrow(() -> new TechStackNotFoundException(id));
 
         // Entity -> Response DTO로 변환
-        return TechStackResponse.from(techStack);
+        return techStackMapper.toResponse(techStack);
     }
 
     // ==================== PAGING ====================
@@ -177,9 +167,7 @@ public class TechStackService {
         Page<TechStack> techStackPage = techStackDao.findAllWithPaging(profileId, page, size);
 
         // Entity -> DTO 변환
-        List<TechStackResponse> content = techStackPage.getContent().stream()
-                .map(TechStackResponse::from)
-                .toList();
+        List<TechStackResponse> content = techStackMapper.toResponseList(techStackPage.getContent());
 
         // Page<Entity>를 Page<DTO>로 변환 및 반환
         return new Page<>(content, page, size, techStackPage.getTotalElements());
@@ -213,9 +201,7 @@ public class TechStackService {
                 profileId, categoryName.toUpperCase(), page, size);
 
         // Entity -> DTO 변환
-        List<TechStackResponse> content = techStackPage.getContent().stream()
-                .map(TechStackResponse::from)
-                .toList();
+        List<TechStackResponse> content = techStackMapper.toResponseList(techStackPage.getContent());
 
         // Page<Entity>를 Page<DTO>로 변환 및 반환
         return new Page<>(content, page, size, techStackPage.getTotalElements());
@@ -260,9 +246,7 @@ public class TechStackService {
         Page<TechStack> techStackPage = techStackDao.searchWithPaging(profileId, category, proficiency, page, size);
 
         // Entity -> DTO 변환
-        List<TechStackResponse> content = techStackPage.getContent().stream()
-                .map(TechStackResponse::from)
-                .toList();
+        List<TechStackResponse> content = techStackMapper.toResponseList(techStackPage.getContent());
 
         // Page<Entity>를 Page<DTO>로 변환 및 반환
         return new Page<>(content, page, size, techStackPage.getTotalElements());
@@ -291,17 +275,11 @@ public class TechStackService {
         TechStack techStack = techStackDao.findByProfileIdAndId(profileId, id)
                 .orElseThrow(() -> new TechStackNotFoundException(id));
 
-        // 수정 내용 있는지 확인
-        if (request.hashNoUpdates()) {
-            throw new IllegalArgumentException("수정 내용이 없습니다.");
-        }
-
-        // 기술 카테고리 및 숙련도 변환 (Null 아닌 경우에만)
-        TechCategory category = null;
+        // 기술 카테고리 및 숙련도 유효성 검증
         Proficiency proficiency = null;
         if (request.getCategory() != null) {
             try {
-                category = TechCategory.valueOf(request.getCategory().toUpperCase());
+                request.setCategory(TechCategory.valueOf(request.getCategory().toUpperCase()).name());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("유효하지 않은 기술 스택 입니다.");
             }
@@ -309,23 +287,18 @@ public class TechStackService {
 
         if (request.getProficiency() != null) {
             try {
-                proficiency = Proficiency.valueOf(request.getProficiency().toUpperCase());
+                request.setProficiency(Proficiency.valueOf(request.getProficiency().toUpperCase()).name());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("유효하지 않은 숙련도 입니다.");
             }
         }
 
         // Entity 업데이트 (Null이 아닌 값만 반영)
-        techStack.update(
-                request.getName(),
-                category,
-                proficiency,
-                request.getYearsOfExp()
-        );
+        techStackMapper.updateEntity(request, techStack);
 
         // 저장 및 응답 반환
         TechStack updatedTechStack = techStackDao.updateByProfileId(profileId, techStack);
-        return TechStackResponse.from(updatedTechStack);
+        return techStackMapper.toResponse(updatedTechStack);
     }
 
     // ==================== DELETE ====================
