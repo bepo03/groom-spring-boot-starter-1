@@ -1,14 +1,18 @@
 -- 회원 데이터 (비밀번호는 BCrypt로 인코딩된 "password123")
-# INSERT INTO member (username, password, role) VALUES
-#     ('javakim', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER'),
-#     ('reactlee', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER'),
-#     ('fullpark', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER');
+INSERT INTO member
+(username, password, role)
+VALUES
+    ('javakim', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER'),
+    ('reactlee', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER'),
+    ('fullpark', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER');
 
 -- 프로필 데이터 (member_id 추가)
-INSERT INTO profile (name, email, bio, position, career_years, github_url, blog_url) VALUES
-    ('김자바', 'java.kim@example.com', 'Spring Boot를 사랑하는 백엔드 개발자입니다.', 'BACKEND', 3, 'https://github.com/javakim', 'https://javakim.tistory.com'),
-    ('이리액트', 'react.lee@example.com', '사용자 경험을 중시하는 프론트엔드 개발자입니다.', 'FRONTEND', 2, 'https://github.com/reactlee', NULL),
-    ('박풀스택', 'full.park@example.com', '프론트부터 백엔드까지 다루는 풀스택 개발자입니다.', 'FULLSTACK', 5, 'https://github.com/fullpark', 'https://fullpark.dev');
+INSERT INTO profile
+(member_id, name, email, bio, position, career_years, github_url, blog_url)
+VALUES
+    (1, '김자바', 'java.kim@example.com', 'Spring Boot를 사랑하는 백엔드 개발자입니다.', 'BACKEND', 3, 'https://github.com/javakim', 'https://javakim.tistory.com'),
+    (2, '이리액트', 'react.lee@example.com', '사용자 경험을 중시하는 프론트엔드 개발자입니다.', 'FRONTEND', 2, 'https://github.com/reactlee', NULL),
+    (3, '박풀스택', 'full.park@example.com', '프론트부터 백엔드까지 다루는 풀스택 개발자입니다.', 'FULLSTACK', 5, 'https://github.com/fullpark', 'https://fullpark.dev');
 
 -- 기술 스택 데이터 (김자바)
 INSERT INTO tech_stack

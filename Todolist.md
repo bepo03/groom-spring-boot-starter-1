@@ -87,12 +87,12 @@
 
 ### Phase 4: Spring Security — 회원 도메인 및 JWT 기반 구현
 
-- [ ]  `build.gradle`에 Spring Security, JJWT 의존성 추가
-- [ ]  `application.yml`에 JWT 설정 추가 (`secret`, `access-token-expiration`, `refresh-token-expiration`)
-- [ ]  `Member` Entity 작성 (Lombok 적용)
-- [ ]  `Role` Enum 작성 (`USER`, `ADMIN`)
-- [ ]  `RefreshToken` Entity 작성
-- [ ]  `MemberDao` 인터페이스 및 구현체 작성
+- [x]  `build.gradle`에 Spring Security, JJWT 의존성 추가
+- [x]  `application.yml`에 JWT 설정 추가 (`secret`, `access-token-expiration`, `refresh-token-expiration`)
+- [x]  `Member` Entity 작성 (Lombok 적용)
+- [x]  `Role` Enum 작성 (`USER`, `ADMIN`)
+- [x]  `RefreshToken` Entity 작성
+- [x]  `MemberDao` 인터페이스 및 구현체 작성
 - [ ]  `RefreshTokenDao` 인터페이스 및 구현체 작성 (`save`, `findByMemberId`, `deleteByMemberId`)
 - [ ]  `CustomUserDetailsService` 구현 (`UserDetailsService` 구현체)
 - [ ]  `PasswordEncoder` Bean 등록 (`BCryptPasswordEncoder`)
