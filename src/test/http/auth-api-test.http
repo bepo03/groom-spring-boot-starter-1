@@ -1,0 +1,30 @@
+### 사용자 회원가입
+POST http://localhost:8080/api/v1/auth/signup
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "password123"
+}
+
+### 사용자 로그인
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "javakim",
+  "password": "password123"
+}
+
+### 토큰 재발급
+POST http://localhost:8080/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NzMzMjcxNTksImV4cCI6MTc3MzkzMTk1OX0.svIp-fGKIccqqQgziNgN8X3y0JxheZEzlk4UETerJkNgTnamJZh9t38IrAthqIHE"
+}
+
+### 로그아웃
+POST http://localhost:8080/api/v1/auth/logout
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzMyODQxMywiZXhwIjoxNzczMzMwMjEzfQ.j5urPgCEZb_T_xWe-z7nWZ30Bzz-_BMxzEo5lIJdDE9cu6K0OLoHjHDz-m9SKfOT

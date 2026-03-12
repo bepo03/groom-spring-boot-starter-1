@@ -105,15 +105,15 @@
 - [x]  `JwtTokenProvider` 구현 (`createAccessToken`, `createRefreshToken`, `getUsername`, `validateToken`)
 - [x]  `JwtAuthenticationFilter` 구현 (`OncePerRequestFilter` 상속, `shouldNotFilter()` 오버라이드)
 - [x]  `JwtAuthenticationEntryPoint` 구현 (토큰 에러 분기: `TOKEN_EXPIRED`, `INVALID_TOKEN`, `UNAUTHORIZED`)
-- [ ]  `SecurityConfig` 작성
-    - [ ]  CSRF 비활성화
-    - [ ]  세션 정책 `STATELESS` 설정
-    - [ ]  인가 규칙 설정 (GET은 허용, CUD는 인증 필요)
-    - [ ]  `addFilterBefore`로 `JwtAuthenticationFilter` 등록
-    - [ ]  `JwtAuthenticationEntryPoint` 등록
-- [ ]  `AuthService` 구현 (회원가입, 로그인, 토큰 재발급, 로그아웃)
-- [ ]  `AuthController` 구현 (signup, login, refresh, logout 엔드포인트)
-- [ ]  Postman으로 회원가입 → 로그인 → Access Token으로 API 호출 테스트
+- [x]  `SecurityConfig` 작성
+    - [x]  CSRF 비활성화
+    - [x]  세션 정책 `STATELESS` 설정
+    - [x]  인가 규칙 설정 (GET은 허용, CUD는 인증 필요)
+    - [x]  `addFilterBefore`로 `JwtAuthenticationFilter` 등록
+    - [x]  `JwtAuthenticationEntryPoint` 등록
+- [x]  `AuthService` 구현 (회원가입, 로그인, 토큰 재발급, 로그아웃)
+- [x]  `AuthController` 구현 (signup, login, refresh, logout 엔드포인트)
+- [x]  Postman으로 회원가입 → 로그인 → Access Token으로 API 호출 테스트
 
 ### Phase 6: 소유권 검증 적용
 
