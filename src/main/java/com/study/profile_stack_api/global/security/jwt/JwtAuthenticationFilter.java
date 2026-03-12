@@ -78,12 +78,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * 인증이 필요하지 않은 경로는 필터를 건너뛴다.
-     * /api/v1/auth/ 하위 경로(로그인, 회원가입 등)는 토큰 검증이 불필요하다.
+     * 로그인/회원가입/토큰 재발급은 토큰 검증이 불필요하다.
+     * 로그아웃은 access token 인증이 필요하므로 필터를 통과시킨다.
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/v1/auth/");
+        return path.equals("/api/v1/auth/login")
+                || path.equals("/api/v1/auth/signup")
+                || path.equals("/api/v1/auth/refresh");
     }
 
     /**

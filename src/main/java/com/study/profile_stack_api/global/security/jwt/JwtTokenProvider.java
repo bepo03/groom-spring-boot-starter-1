@@ -1,5 +1,6 @@
 package com.study.profile_stack_api.global.security.jwt;
 
+import com.study.profile_stack_api.domain.auth.entity.RefreshToken;
 import com.study.profile_stack_api.domain.auth.exception.ExpiredTokenException;
 import com.study.profile_stack_api.domain.auth.exception.InvalidTokenException;
 import io.jsonwebtoken.*;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -59,11 +62,10 @@ public class JwtTokenProvider {
      * username을 기반으로 Refresh Token 생성
      * Refresh Token에는 role 정보를 포함하지 않음
      */
-    public String createRefreshToken(String username) {
+    public RefreshToken createRefreshToken(Long memberId, String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
-
-        return Jwts.builder()
+        String token =  Jwts.builder()
                 .subject(username)
                 .claim("type", "refresh")
                 .issuedAt(now)
@@ -71,6 +73,11 @@ public class JwtTokenProvider {
                 .signWith(secretKey)
                 .compact();
 
+        return RefreshToken.builder()
+                .member_id(memberId)
+                .token(token)
+                .expiry_date(LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault()))
+                .build();
     }
 
     /**
@@ -118,6 +125,43 @@ public class JwtTokenProvider {
         } catch (IllegalArgumentException e) {
             log.error("JWT claims string is empty", e);
             throw new InvalidTokenException("JWT 클레임이 비어 있습니다.");
+        }
+    }
+
+    /**
+     * 토큰이 리프레시 토큰인지 확인
+     */
+    public boolean isRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            String type = claims.get("type", String.class);
+            return "refresh".equals(type);
+        } catch (Exception e) {
+            log.error("Failed to check token type", e);
+            return false;
+        }
+    }
+
+    /**
+     * 토큰 만료 시간 가져오기
+     */
+    public Date getExpirationFromToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            return claims.getExpiration();
+        } catch (Exception e) {
+            log.error("Failed to extract expiration from token", e);
+            throw new InvalidTokenException("잘못된 토큰입니다.");
         }
     }
 }

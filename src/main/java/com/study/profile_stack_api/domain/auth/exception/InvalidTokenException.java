@@ -11,8 +11,4 @@ public class InvalidTokenException extends AuthException {
     public InvalidTokenException(String message) {
         super(ErrorCode.INVALID_TOKEN, message);
     }
-
-    public InvalidTokenException(String message, Throwable cause) {
-        super(ErrorCode.INVALID_TOKEN, message, cause);
-    }
 }

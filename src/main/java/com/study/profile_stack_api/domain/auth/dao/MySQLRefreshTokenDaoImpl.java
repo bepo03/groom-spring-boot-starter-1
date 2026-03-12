@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -27,13 +26,13 @@ public class MySQLRefreshTokenDaoImpl implements RefreshTokenDao {
      * Refresh Token 저장
      */
     @Override
-    public void saveRefreshToken(Long memberId, String token, Timestamp expiresAt) {
+    public void saveRefreshToken(RefreshToken refreshToken) {
         String deleteSql = "DELETE FROM refresh_token WHERE member_id = ?";
-        jdbcTemplate.update(deleteSql, memberId);
+        jdbcTemplate.update(deleteSql, refreshToken.getMember_id());
 
         String insertSql = "INSERT INTO refresh_token (member_id, token, expiry_date) VALUES (?, ?, ?)";
-        jdbcTemplate.update(insertSql, memberId, token, expiresAt);
-        log.debug("Saved refresh token for member ID: {}", memberId);
+        jdbcTemplate.update(insertSql, refreshToken.getMember_id(), refreshToken.getToken(), refreshToken.getExpiry_date());
+        log.debug("Saved refresh token for member ID: {}", refreshToken.getMember_id());
     }
 
     // ==================== READ ====================
@@ -95,13 +94,11 @@ public class MySQLRefreshTokenDaoImpl implements RefreshTokenDao {
     /**
      * ResultSet의 각 행을 Refresh Token 객체로 변환
      */
-    private final RowMapper<RefreshToken> refreshTokenRowMapper = (rs, rowNum) -> {
-        return RefreshToken.builder()
-                .id(rs.getLong("id"))
-                .member_id(rs.getLong("memberId"))
-                .token(rs.getString("token"))
-                .expiry_date(rs.getTimestamp("expiryDate").toLocalDateTime())
-                .created_at(rs.getTimestamp("createdAt").toLocalDateTime())
-                .build();
-    };
+    private final RowMapper<RefreshToken> refreshTokenRowMapper = (rs, rowNum) ->
+            RefreshToken.builder()
+                    .id(rs.getLong("id"))
+                    .member_id(rs.getLong("member_id"))
+                    .token(rs.getString("token"))
+                    .expiry_date(rs.getTimestamp("expiry_date").toLocalDateTime())
+                    .build();
 }

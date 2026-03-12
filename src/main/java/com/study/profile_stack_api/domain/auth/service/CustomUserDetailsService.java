@@ -5,6 +5,7 @@ import com.study.profile_stack_api.domain.auth.entity.Member;
 import com.study.profile_stack_api.domain.auth.entity.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -28,6 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final MemberDao memberDao;
 
     @Override
+    @NullMarked
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Loading user by username: {}", username);
 

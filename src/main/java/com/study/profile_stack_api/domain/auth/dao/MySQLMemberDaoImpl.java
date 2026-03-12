@@ -208,7 +208,7 @@ public class MySQLMemberDaoImpl implements MemberDao {
                 .password(rs.getString("password"))
                 .role(role)
                 .enabled(rs.getBoolean("enabled"))
-                .createdAt(rs.getTimestamp("createdAt").toLocalDateTime())
+                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .build();
     };
 }

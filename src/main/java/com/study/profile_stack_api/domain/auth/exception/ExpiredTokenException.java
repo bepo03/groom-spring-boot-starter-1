@@ -11,8 +11,4 @@ public class ExpiredTokenException extends AuthException {
     public ExpiredTokenException(String message) {
         super(ErrorCode.TOKEN_EXPIRED, message);
     }
-
-    public ExpiredTokenException(String message, Throwable cause) {
-        super(ErrorCode.TOKEN_EXPIRED, message, cause);
-    }
 }

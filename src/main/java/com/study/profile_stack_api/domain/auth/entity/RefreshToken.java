@@ -12,10 +12,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id")
 public class RefreshToken {
     private Long id;
     private Long member_id;
     private String token;
     private LocalDateTime expiry_date;
-    private LocalDateTime created_at;
+
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -2,7 +2,6 @@ package com.study.profile_stack_api.domain.auth.dao;
 
 import com.study.profile_stack_api.domain.auth.entity.RefreshToken;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -12,7 +11,7 @@ public interface RefreshTokenDao {
 
     // ==================== CREATE ====================
 
-    void saveRefreshToken(Long userId, String token, Timestamp expiresAt);
+    void saveRefreshToken(RefreshToken refreshToken);
 
     // ==================== READ ====================
 

@@ -2,9 +2,9 @@
 INSERT INTO member
 (username, password, role)
 VALUES
-    ('javakim', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER'),
-    ('reactlee', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER'),
-    ('fullpark', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER');
+    ('javakim', '$2a$10$PuqP8oP2AUD6MXUjyVdgcunk4qGZtOpXKj4mm4y/UyMghHNikAxyC', 'USER'),
+    ('reactlee', '$2a$10$PuqP8oP2AUD6MXUjyVdgcunk4qGZtOpXKj4mm4y/UyMghHNikAxyC', 'USER'),
+    ('fullpark', '$2a$10$PuqP8oP2AUD6MXUjyVdgcunk4qGZtOpXKj4mm4y/UyMghHNikAxyC', 'USER');
 
 -- 프로필 데이터 (member_id 추가)
 INSERT INTO profile
