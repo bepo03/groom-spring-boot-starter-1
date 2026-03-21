@@ -12,13 +12,18 @@ import java.util.List;
 public interface ProfileMapper {
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "memberId", ignore = true),
+            @Mapping(target = "member", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "updatedAt", ignore = true)
+            @Mapping(target = "updatedAt", ignore = true),
+            @Mapping(target = "version", ignore = true)
     })
     Profile toEntity(ProfileCreateRequest request);
 
-    @Mapping(target = "positionIcon", expression = "java(profile.getPosition().getIcon())")
+    @Mappings({
+            @Mapping(target = "memberId", source = "member.id"),
+            @Mapping(target = "position", source = "position"),
+            @Mapping(target = "positionIcon", expression = "java(profile.getPosition().getIcon())")
+    })
     ProfileResponse toResponse(Profile profile);
 
     List<ProfileResponse> toResponseList(List<Profile> profiles);
@@ -26,9 +31,10 @@ public interface ProfileMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mappings({
             @Mapping(target = "id", ignore = true),
-            @Mapping(target = "memberId", ignore = true),
+            @Mapping(target = "member", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "updatedAt", ignore = true)
+            @Mapping(target = "updatedAt", ignore = true),
+            @Mapping(target = "version", ignore = true)
     })
     void updateEntity(ProfileUpdateRequest request, @MappingTarget Profile profile);
 }

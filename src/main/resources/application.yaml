@@ -38,6 +38,17 @@ spring:
       data-locations: classpath:db/data.sql
       continue-on-error: false
 
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        default_batch_fetch_size: 100
+    open-in-view: false
+
 # 로깅 설정
 logging:
   level:
@@ -45,6 +56,8 @@ logging:
     com.study.profile_stack_api: DEBUG
     org.springframework.jdbc: DEBUG
     com.zaxxer.hikari: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
 
 # JWT 설정
 jwt:

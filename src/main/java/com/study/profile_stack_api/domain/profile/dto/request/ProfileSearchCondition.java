@@ -13,9 +13,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ProfileSearchCondition {
+    @Builder.Default
     private String name = null;
+    @Builder.Default
     private String position = null;
+    @Builder.Default
     private int page = 0;
+    @Builder.Default
     private int size = 0;
 
     public static ProfileSearchCondition of(String name, String position, int page, int size) {

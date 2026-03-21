@@ -1,12 +1,12 @@
 package com.study.profile_stack_api.domain.techstack.dao;
 
-import com.study.profile_stack_api.domain.profile.dao.ProfileDao;
+import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
+import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
 import com.study.profile_stack_api.domain.techstack.entity.Proficiency;
 import com.study.profile_stack_api.domain.techstack.entity.TechCategory;
 import com.study.profile_stack_api.domain.techstack.entity.TechStack;
-import com.study.profile_stack_api.global.common.Page;
-import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import com.study.profile_stack_api.domain.techstack.exception.TechStackNotFoundException;
+import com.study.profile_stack_api.global.common.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -27,7 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MySQLTechStackDaoImpl implements TechStackDao {
     public final JdbcTemplate jdbcTemplate;
-    private final ProfileDao profileDao;
+    private final ProfileRepository profileRepository;
 
     // ==================== CREATE ====================
 
@@ -39,7 +39,7 @@ public class MySQLTechStackDaoImpl implements TechStackDao {
      */
     @Override
     public TechStack saveByProfileId(Long profileId, TechStack techStack) {
-        if (!profileDao.existsById(profileId)) {
+        if (!profileRepository.existsById(profileId)) {
             throw new ProfileNotFoundException(profileId);
         }
 

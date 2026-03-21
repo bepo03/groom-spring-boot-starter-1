@@ -3,7 +3,6 @@ package com.study.profile_stack_api.domain.profile.service;
 import com.study.profile_stack_api.domain.auth.dao.MemberDao;
 import com.study.profile_stack_api.domain.auth.entity.Member;
 import com.study.profile_stack_api.domain.auth.entity.Role;
-import com.study.profile_stack_api.domain.profile.dao.ProfileDao;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileCreateRequest;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileSearchCondition;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileUpdateRequest;
@@ -15,10 +14,14 @@ import com.study.profile_stack_api.domain.profile.entity.Profile;
 import com.study.profile_stack_api.domain.profile.exception.DuplicateEmailException;
 import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import com.study.profile_stack_api.domain.profile.mapper.ProfileMapper;
+import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
 import com.study.profile_stack_api.global.common.Page;
 import com.study.profile_stack_api.global.exception.AuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,7 +36,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class ProfileService {
     /** 의존성 주입 */
-    private final ProfileDao profileDao;
+    private final ProfileRepository profileRepository;
     private final ProfileMapper profileMapper;
     private final MemberDao memberDao;
 
@@ -49,16 +52,17 @@ public class ProfileService {
      */
     public ProfileResponse createProfile(ProfileCreateRequest request, String currentUsername) {
         // 이메일 유효성 검증
-        if (profileDao.existsByEmail(request.getEmail())) {
+        if (profileRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new DuplicateEmailException(request.getEmail());
         }
 
         // DTO -> Entity변환
         Profile profile = profileMapper.toEntity(request);
-        profile.setMemberId(getCurrentMemberId(currentUsername));
+        Member member = getCurrentMember(currentUsername);
+        profile.setMember(member);
 
         // 저장
-        Profile savedProfile = profileDao.save(profile);
+        Profile savedProfile = profileRepository.save(profile);
 
         // Entity -> Response DTO 변환 후 반환
         return profileMapper.toResponse(savedProfile);
@@ -73,7 +77,7 @@ public class ProfileService {
      */
     public List<ProfileResponse> getAllProfiles() {
         // Repository에서 모든 프로필 조회
-        List<Profile> profiles = profileDao.findAll();
+        List<Profile> profiles = profileRepository.findAllByOrderByCreatedAtDescIdDesc();
 
         // Entity 리스트 -> Response DTO 리스트로 변환
         return profileMapper.toResponseList(profiles);
@@ -88,7 +92,7 @@ public class ProfileService {
      */
     public List<ProfileResponse> searchProfiles(String nameKeyword, String positionKeyword) {
         // Repository에서 모든 프로필 조회
-        List<Profile> profiles = profileDao.findAll();
+        List<Profile> profiles = profileRepository.findAllByOrderByCreatedAtDescIdDesc();
 
         // 이름 검색어가 없거나 빈값이 아니면 필터링
         if (nameKeyword != null && !nameKeyword.isBlank()) {
@@ -117,7 +121,7 @@ public class ProfileService {
      */
     public ProfileResponse getProfileById(Long id) {
         // Repository에서 ID로 조회, 존재하지 않으면 예외 처리
-        Profile profile = profileDao.findById(id)
+        Profile profile = profileRepository.findById(id)
                 .orElseThrow(() -> new ProfileNotFoundException(id));
 
         // Entity -> Response DTO로 변환
@@ -135,7 +139,7 @@ public class ProfileService {
         Position position = parsePosition(positionName);
 
         // Repository에서 직무로 조회
-        List<Profile> profiles = profileDao.findByPosition(position);
+        List<Profile> profiles = profileRepository.findByPositionOrderByCreatedAtDescIdDesc(position);
 
         // Entity 리스트 -> Response DTO 리스트로 변환
         return profileMapper.toResponseList(profiles);
@@ -173,7 +177,14 @@ public class ProfileService {
         size = Math.min(Math.max(1, size), MAX_PAGE_SIZE);  // 1 ~ 100 범위
 
         // DAO에서 페이징된 Entity 조회
-        Page<Profile> profilePage = profileDao.findAllWithPaging(page, size);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+        );
+
+        org.springframework.data.domain.Page<Profile> profilePage =
+                profileRepository.findAll(pageable);
 
         // Entity -> DTO 변환
         List<ProfileResponse> content = profileMapper.toResponseList(profilePage.getContent());
@@ -201,7 +212,16 @@ public class ProfileService {
         }
 
         // DAO에서 페이징된 Entity 조회
-        Page<Profile> profilePage = profileDao.findByPositionWithPaging(positionName.toUpperCase(), page, size);
+        Position position = parsePosition(positionName);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+        );
+
+        org.springframework.data.domain.Page<Profile> profilePage =
+                profileRepository.findByPosition(position, pageable);
 
         // Entity -> DTO 변환
         List<ProfileResponse> content = profileMapper.toResponseList(profilePage.getContent());
@@ -224,13 +244,20 @@ public class ProfileService {
         page = Math.max(0, page);                           // 음수 방지
         size = Math.min(Math.max(1, size), MAX_PAGE_SIZE);  // 1 ~ 100 범위
 
-        String position = null;
+        Position position = null;
         if (positionKeyword != null && !positionKeyword.isBlank()) {
-            position = parsePositionName(positionKeyword);
+            position = parsePosition(positionKeyword);
         }
 
         // DAO에서 페이징된 Entity 조회
-        Page<Profile> profilePage = profileDao.searchWithPaging(nameKeyword, position, page, size);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+        );
+
+        org.springframework.data.domain.Page<Profile> profilePage =
+                profileRepository.search(nameKeyword, position, pageable);
 
         // Entity -> DTO 변환
         List<ProfileResponse> content = profileMapper.toResponseList(profilePage.getContent());
@@ -272,11 +299,11 @@ public class ProfileService {
         Objects.requireNonNull(request);
 
         // 기존 프로필 조회
-        Profile profile = profileDao.findById(id)
+        Profile profile = profileRepository.findById(id)
                 .orElseThrow(() -> new ProfileNotFoundException(id));
 
         // 소유권 검증: 현재 로그인한 사용자가 이 프로필의 소유주인지 확인
-        if (!profile.getMemberId().equals(getCurrentMemberId(currentUsername))) {
+        if (!profile.getMember().equals(getCurrentMember(currentUsername))) {
             throw new AuthException("본인의 프로필만 수정할 수 있습니다.");
         }
 
@@ -289,7 +316,7 @@ public class ProfileService {
         profileMapper.updateEntity(request, profile);
 
         // 저장 및 응답 반환
-        Profile updatedProfile = profileDao.update(profile);
+        Profile updatedProfile = profileRepository.save(profile);
         return profileMapper.toResponse(updatedProfile);
     }
 
@@ -303,19 +330,19 @@ public class ProfileService {
      */
     public ProfileDeleteResponse deleteProfile(Long id, String currentUsername) {
         // ID에 따른 프로필이 있는지 확인
-        Profile profile = profileDao.findById(id)
+        Profile profile = profileRepository.findById(id)
                 .orElseThrow(() -> new ProfileNotFoundException(id));
 
         // 소유권 검증: 현재 로그인한 사용자가 이 프로필의 소유주인지 확인
-        if (!profile.getMemberId().equals(getCurrentMemberId(currentUsername))) {
+        if (!profile.getMember().equals(getCurrentMember(currentUsername))) {
             throw new AuthException("본인의 프로필만 삭제할 수 있습니다.");
         }
 
         // 삭제 수행
-        boolean isDeleted = profileDao.deleteById(id);
+        profileRepository.delete(profile);
 
         // 삭제 결과 반환
-        return ProfileDeleteResponse.of(id, isDeleted);
+        return ProfileDeleteResponse.of(id, true);
     }
 
     /**
@@ -335,7 +362,8 @@ public class ProfileService {
         }
 
         // 프로필 총 개수 확인
-        long deleteCount = profileDao.deleteAll();
+        long deleteCount = profileRepository.count();
+        profileRepository.deleteAll();
 
         // 삭제 결과 반환
         return ProfileDeleteAllResponse.of(deleteCount);
@@ -364,16 +392,14 @@ public class ProfileService {
     }
 
     /**
-     * 현재 로그인한 사용자의 회원 ID 조회
+     * 현재 로그인한 사용자 정보 조회
      *
      * @param username 현재 로그인한 사용자 이름
-     * @return 회원 ID
+     * @return 회원 엔티티
      */
-    private Long getCurrentMemberId(String username) {
-        Member member = memberDao.findByUsername(username)
+    private Member getCurrentMember(String username) {
+        return memberDao.findByUsername(username)
                 .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
-
-        return member.getId();
     }
 
     /**

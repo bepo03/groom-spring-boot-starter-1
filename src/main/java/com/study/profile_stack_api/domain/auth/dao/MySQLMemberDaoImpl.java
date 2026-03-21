@@ -46,7 +46,7 @@ public class MySQLMemberDaoImpl implements MemberDao {
             ps.setString(2, member.getPassword());
 
             Role role = member.getRole() != null ? member.getRole() : Role.USER;
-            ps.setString(3, "ROLE_" + role.name());
+            ps.setString(3, role.name());
 
             ps.setBoolean(4, member.isEnabled());
 
@@ -136,7 +136,7 @@ public class MySQLMemberDaoImpl implements MemberDao {
     public int update(Member member) {
         String sql = "UPDATE member SET username = ?, password = ?, role = ?, enabled = ? WHERE id = ?";
 
-        String roleStr = member.getRole() != null ? "ROLE_" + member.getRole().name() : "ROLE_USER";
+        String roleStr = member.getRole() != null ? member.getRole().name() : Role.USER.name();
 
         int rowsAffected = jdbcTemplate.update(sql,
                 member.getUsername(),
@@ -192,9 +192,6 @@ public class MySQLMemberDaoImpl implements MemberDao {
         Role role = Role.USER;
 
         if (roleStr != null) {
-            if (roleStr.startsWith("ROLE_")) {
-                roleStr = roleStr.substring(5);
-            }
             try {
                 role = Role.valueOf(roleStr);
             } catch (IllegalArgumentException e) {
@@ -209,6 +206,7 @@ public class MySQLMemberDaoImpl implements MemberDao {
                 .role(role)
                 .enabled(rs.getBoolean("enabled"))
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                .version(rs.getLong("version"))
                 .build();
     };
 }

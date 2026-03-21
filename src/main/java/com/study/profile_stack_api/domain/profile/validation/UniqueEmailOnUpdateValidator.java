@@ -1,7 +1,7 @@
 package com.study.profile_stack_api.domain.profile.validation;
 
-import com.study.profile_stack_api.domain.profile.dao.ProfileDao;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileUpdateRequest;
+import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.constraintvalidation.SupportedValidationTarget;
@@ -12,15 +12,15 @@ import org.springframework.stereotype.Component;
 @SupportedValidationTarget(ValidationTarget.PARAMETERS)
 public class UniqueEmailOnUpdateValidator implements ConstraintValidator<UniqueEmailOnUpdate, Object[]> {
 
-    private final ProfileDao profileDao;
+    private final ProfileRepository profileRepository;
 
     /**
      * 수정 요청용 이메일 중복 검증기 생성
      *
-     * @param profileDao 프로필 조회 DAO
+     * @param profileRepository 프로필 조회 Repository
      */
-    public UniqueEmailOnUpdateValidator(ProfileDao profileDao) {
-        this.profileDao = profileDao;
+    public UniqueEmailOnUpdateValidator(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
     }
 
     /**
@@ -51,6 +51,6 @@ public class UniqueEmailOnUpdateValidator implements ConstraintValidator<UniqueE
         }
 
         // DB에 "자기 자신(id 제외) + 동일 이메일" 이 존재하면 검증 실패
-        return !profileDao.existsByEmailAndIdNot(id, email);
+        return !profileRepository.existsByEmailIgnoreCaseAndIdNot(email, id);
     }
 }

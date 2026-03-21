@@ -68,3 +68,7 @@ CREATE INDEX idx_profile_position ON profile(position) ;
 CREATE INDEX idx_tech_stack_profile_id ON tech_stack(profile_id) ;
 CREATE INDEX idx_tech_stack_category ON tech_stack(category);
 CREATE INDEX idx_profile_member_id ON profile(member_id);
+
+-- 버전 컬럼 추가 (낙관적 락을 위한)
+ALTER TABLE member ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE profile ADD COLUMN version BIGINT NOT NULL DEFAULT 0;

@@ -2,9 +2,9 @@ package com.study.profile_stack_api.domain.techstack.service;
 
 import com.study.profile_stack_api.domain.auth.dao.MemberDao;
 import com.study.profile_stack_api.domain.auth.entity.Member;
-import com.study.profile_stack_api.domain.profile.dao.ProfileDao;
 import com.study.profile_stack_api.domain.profile.entity.Profile;
 import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
+import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
 import com.study.profile_stack_api.domain.techstack.dao.TechStackDao;
 import com.study.profile_stack_api.domain.techstack.dto.request.TechStackCreateRequest;
 import com.study.profile_stack_api.domain.techstack.dto.request.TechStackUpdateRequest;
@@ -34,7 +34,7 @@ import java.util.Objects;
 public class TechStackService {
     /** 의존성 주입 */
     private final TechStackDao techStackDao;
-    private final ProfileDao profileDao;
+    private final ProfileRepository profileRepository;
     private final MemberDao memberDao;
     private final TechStackMapper techStackMapper;
 
@@ -340,24 +340,22 @@ public class TechStackService {
      * 프로필과 기술 스택의 FK 검증
      */
     private void validataProfile(Long profileId, String username, String messageType) {
-        Profile profile = profileDao.findById(profileId)
+        Profile profile = profileRepository.findById(profileId)
                 .orElseThrow(() -> new ProfileNotFoundException(profileId));
 
-        if (!profile.getMemberId().equals(getCurrentMemberId(username))) {
+        if (!profile.getMember().equals(getCurrentMember(username))) {
           throw new AuthException("본인의 테크스택만 " + messageType + "할 수 있습니다.");
         }
     }
 
     /**
-     * 현재 로그인한 사용자의 회원 ID 조회
+     * 현재 로그인한 사용자 정보 조회
      *
      * @param username 현재 로그인한 사용자 이름
-     * @return 회원 ID
+     * @return 회원 엔티티
      */
-    private Long getCurrentMemberId(String username) {
-        Member member = memberDao.findByUsername(username)
+    private Member getCurrentMember(String username) {
+        return memberDao.findByUsername(username)
                 .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
-
-        return member.getId();
     }
 }

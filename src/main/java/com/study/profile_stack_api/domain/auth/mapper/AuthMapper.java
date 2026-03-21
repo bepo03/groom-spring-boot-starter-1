@@ -16,7 +16,8 @@ public interface AuthMapper {
             @Mapping(target = "password", source = "encodedPassword"),
             @Mapping(target = "role", expression = "java(Role.USER)"),
             @Mapping(target = "enabled", constant = "true"),
-            @Mapping(target = "createdAt", ignore = true)
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "version", ignore = true)
     })
     Member toEntity(SignupRequest request, String encodedPassword);
 

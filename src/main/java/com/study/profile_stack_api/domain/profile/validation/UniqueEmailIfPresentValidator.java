@@ -1,6 +1,6 @@
 package com.study.profile_stack_api.domain.profile.validation;
 
-import com.study.profile_stack_api.domain.profile.dao.ProfileDao;
+import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.stereotype.Component;
@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class UniqueEmailIfPresentValidator implements ConstraintValidator<UniqueEmailIfPresent, String> {
 
-    private final ProfileDao profileDao;
+    private final ProfileRepository profileRepository;
 
     /**
      * 이메일 중복 검증기 생성
      *
-     * @param profileDao 프로필 조회 DAO
+     * @param profileRepository 프로필 조회 Repository
      */
-    public UniqueEmailIfPresentValidator(ProfileDao profileDao) {
-        this.profileDao = profileDao;
+    public UniqueEmailIfPresentValidator(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
     }
 
     /**
@@ -35,6 +35,6 @@ public class UniqueEmailIfPresentValidator implements ConstraintValidator<Unique
         if (value.trim().isEmpty()) return true;
 
         // 존재 하면 실패
-        return !profileDao.existsByEmail(value);
+        return !profileRepository.existsByEmailIgnoreCase(value);
     }
 }
