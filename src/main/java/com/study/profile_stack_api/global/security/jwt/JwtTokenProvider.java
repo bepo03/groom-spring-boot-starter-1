@@ -1,5 +1,6 @@
 package com.study.profile_stack_api.global.security.jwt;
 
+import com.study.profile_stack_api.domain.auth.entity.Member;
 import com.study.profile_stack_api.domain.auth.entity.RefreshToken;
 import com.study.profile_stack_api.domain.auth.exception.ExpiredTokenException;
 import com.study.profile_stack_api.domain.auth.exception.InvalidTokenException;
@@ -69,7 +70,7 @@ public class JwtTokenProvider {
      * username을 기반으로 Refresh Token 생성
      * Refresh Token에는 role 정보를 포함하지 않음
      */
-    public RefreshToken createRefreshToken(Long memberId, String username) {
+    public RefreshToken createRefreshToken(Member member, String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
         String token =  Jwts.builder()
@@ -81,7 +82,7 @@ public class JwtTokenProvider {
                 .compact();
 
         return RefreshToken.builder()
-                .memberId(memberId)
+                .member(member)
                 .token(token)
                 .expiryDate(LocalDateTime.ofInstant(expiryDate.toInstant(), ZoneId.systemDefault()))
                 .build();

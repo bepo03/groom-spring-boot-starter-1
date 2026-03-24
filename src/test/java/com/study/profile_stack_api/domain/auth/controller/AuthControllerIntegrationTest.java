@@ -42,6 +42,7 @@ class AuthControllerIntegrationTest extends ControllerIntegrationTestSupport {
 
         assertThat(refreshedAccessToken).isNotBlank();
         assertThat(refreshData.path("refreshToken").asText()).isNotBlank();
+        assertThat(refreshData.path("tokenType").asText()).isEqualTo("Bearer");
 
         MvcResult logoutResult = mockMvc.perform(post("/api/v1/auth/logout")
                         .header("Authorization", "Bearer " + refreshedAccessToken))

@@ -1,8 +1,8 @@
 package com.study.profile_stack_api.domain.profile.service;
 
-import com.study.profile_stack_api.domain.auth.dao.MemberDao;
 import com.study.profile_stack_api.domain.auth.entity.Member;
 import com.study.profile_stack_api.domain.auth.entity.Role;
+import com.study.profile_stack_api.domain.auth.repository.MemberRepository;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileCreateRequest;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileSearchCondition;
 import com.study.profile_stack_api.domain.profile.dto.request.ProfileUpdateRequest;
@@ -38,7 +38,7 @@ public class ProfileService {
     /** 의존성 주입 */
     private final ProfileRepository profileRepository;
     private final ProfileMapper profileMapper;
-    private final MemberDao memberDao;
+    private final MemberRepository memberRepository;
 
     /** 페이징 관련 상수 */
     private static final int MAX_PAGE_SIZE = 100;
@@ -352,7 +352,7 @@ public class ProfileService {
      */
     public ProfileDeleteAllResponse deleteAllProfiles(String currentUsername) {
         // 사용자 권한 확인
-        Role role = memberDao.findByUsername(currentUsername)
+        Role role = memberRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."))
                 .getRole();
 
@@ -398,7 +398,7 @@ public class ProfileService {
      * @return 회원 엔티티
      */
     private Member getCurrentMember(String username) {
-        return memberDao.findByUsername(username)
+        return memberRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
     }
 

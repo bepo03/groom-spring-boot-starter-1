@@ -29,6 +29,7 @@ public class TokenRefreshResponse {
         return TokenRefreshResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .tokenType("Bearer")
                 .expiresIn(expiresIn)
                 .build();
     }

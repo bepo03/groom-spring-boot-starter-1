@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
-    Optional<Profile> findByMember_Id(Long memberId);
+    Optional<Profile> findByMemberId(Long memberId);
 
     List<Profile> findAllByOrderByCreatedAtDescIdDesc();
 

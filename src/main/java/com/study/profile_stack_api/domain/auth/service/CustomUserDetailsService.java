@@ -1,8 +1,8 @@
 package com.study.profile_stack_api.domain.auth.service;
 
-import com.study.profile_stack_api.domain.auth.dao.MemberDao;
 import com.study.profile_stack_api.domain.auth.entity.Member;
 import com.study.profile_stack_api.domain.auth.entity.Role;
+import com.study.profile_stack_api.domain.auth.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
@@ -26,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final MemberDao memberDao;
+    private final MemberRepository memberRepository;
 
     /**
      * 사용자 이름으로 인증 대상 사용자 정보를 조회
@@ -40,7 +40,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Loading user by username: {}", username);
 
-        Member member = memberDao.findByUsername(username)
+        Member member = memberRepository.findByUsername(username)
                 .orElseThrow( () -> new UsernameNotFoundException(
                         "사용자를 찾을 수 없습니다. (username: " + username + ")"
                 ));

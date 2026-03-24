@@ -1,7 +1,5 @@
 package com.study.profile_stack_api.domain.auth.service;
 
-import com.study.profile_stack_api.domain.auth.dao.MemberDao;
-import com.study.profile_stack_api.domain.auth.dao.RefreshTokenDao;
 import com.study.profile_stack_api.domain.auth.dto.request.LoginRequest;
 import com.study.profile_stack_api.domain.auth.dto.request.SignupRequest;
 import com.study.profile_stack_api.domain.auth.dto.request.TokenRefreshRequest;
@@ -14,6 +12,8 @@ import com.study.profile_stack_api.domain.auth.entity.Role;
 import com.study.profile_stack_api.domain.auth.exception.DuplicateResourceException;
 import com.study.profile_stack_api.domain.auth.exception.InvalidTokenException;
 import com.study.profile_stack_api.domain.auth.mapper.AuthMapper;
+import com.study.profile_stack_api.domain.auth.repository.MemberRepository;
+import com.study.profile_stack_api.domain.auth.repository.RefreshTokenRepository;
 import com.study.profile_stack_api.global.exception.AuthException;
 import com.study.profile_stack_api.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +42,8 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenDao refreshTokenDao;
-    private final MemberDao memberDao;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthMapper authMapper;
 
@@ -66,7 +66,7 @@ public class AuthService {
             );
 
             // 사용자 및 권한 목록 가져오기
-            Member member = memberDao.findByUsername(request.getUsername())
+            Member member = memberRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
 
             String roles = authentication.getAuthorities().stream()
@@ -75,10 +75,12 @@ public class AuthService {
 
             // 2. Access Token + Refresh Token 생성
             String accessToken = jwtTokenProvider.createAccessToken(member.getUsername(), roles);
-            RefreshToken refreshToken = jwtTokenProvider.createRefreshToken(member.getId(), member.getUsername());
+            RefreshToken refreshToken = jwtTokenProvider.createRefreshToken(member, member.getUsername());
 
             // 3. Refresh Token DB 저장
-            refreshTokenDao.saveRefreshToken(refreshToken);
+            refreshTokenRepository.deleteByMemberId(member.getId());
+            refreshTokenRepository.flush();
+            refreshTokenRepository.save(refreshToken);
 
             log.info("Login successful for member: {}", member.getUsername());
 
@@ -101,13 +103,13 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request) {
         log.info("Signup attempt for username: {}", request.getUsername());
 
-        if (memberDao.existsByUsername(request.getUsername())) {
+        if (memberRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("이미 사용 중인 아이디입니다. (username: " + request.getUsername() + ")");
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Member newMember = authMapper.toEntity(request, encodedPassword);
-        Member savedMember = memberDao.save(newMember);
+        Member savedMember = memberRepository.save(newMember);
 
         log.info("Member registered successfully: {}", savedMember.getUsername());
 
@@ -133,17 +135,20 @@ public class AuthService {
         }
 
         // 2. DB에 저장된 Refresh Token과 일치하는지 확인
-        Member member = memberDao.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new InvalidTokenException("리프레시 토큰을 찾을 수 없거나 만료되었습니다."));
+        Member member = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new InvalidTokenException("리프레시 토큰을 찾을 수 없거나 만료되었습니다."))
+                .getMember();
 
         Role role = member.getRole() != null ? member.getRole() : Role.USER;
         String roles = "ROLE_" + role.name();
 
         // 3. 새 Access Token 발급
         String newAccessToken = jwtTokenProvider.createAccessToken(member.getUsername(), roles);
-        RefreshToken newRefreshToken = jwtTokenProvider.createRefreshToken(member.getId(), member.getUsername());
+        RefreshToken newRefreshToken = jwtTokenProvider.createRefreshToken(member, member.getUsername());
 
-        refreshTokenDao.saveRefreshToken(newRefreshToken);
+        refreshTokenRepository.deleteByMemberId(member.getId());
+        refreshTokenRepository.flush();
+        refreshTokenRepository.save(newRefreshToken);
 
         log.info("Token refreshed successfully for member: {}", member.getUsername());
 
@@ -161,10 +166,10 @@ public class AuthService {
     public void logout(String username) {
         log.info("Logout attempt for username: {}", username);
 
-        Member member = memberDao.findByUsername(username)
+        Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
 
-        refreshTokenDao.deleteByMemberId(member.getId());
+        refreshTokenRepository.deleteByMemberId(member.getId());
         log.info("Logout successful for username: {}", username);
     }
 }

@@ -1,16 +1,18 @@
 package com.study.profile_stack_api.domain.auth.service;
 
-import com.study.profile_stack_api.domain.auth.dao.MemberDao;
-import com.study.profile_stack_api.domain.auth.dao.RefreshTokenDao;
 import com.study.profile_stack_api.domain.auth.dto.request.LoginRequest;
 import com.study.profile_stack_api.domain.auth.dto.request.SignupRequest;
+import com.study.profile_stack_api.domain.auth.dto.request.TokenRefreshRequest;
 import com.study.profile_stack_api.domain.auth.dto.response.LoginResponse;
 import com.study.profile_stack_api.domain.auth.dto.response.SignupResponse;
+import com.study.profile_stack_api.domain.auth.dto.response.TokenRefreshResponse;
 import com.study.profile_stack_api.domain.auth.entity.Member;
 import com.study.profile_stack_api.domain.auth.entity.RefreshToken;
 import com.study.profile_stack_api.domain.auth.entity.Role;
 import com.study.profile_stack_api.domain.auth.exception.DuplicateResourceException;
 import com.study.profile_stack_api.domain.auth.mapper.AuthMapper;
+import com.study.profile_stack_api.domain.auth.repository.MemberRepository;
+import com.study.profile_stack_api.domain.auth.repository.RefreshTokenRepository;
 import com.study.profile_stack_api.global.security.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,10 +45,10 @@ class AuthServiceTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Mock
-    private RefreshTokenDao refreshTokenDao;
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
-    private MemberDao memberDao;
+    private MemberRepository memberRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -82,10 +84,10 @@ class AuthServiceTest {
 
         SignupResponse signupResponse = SignupResponse.of(1L, "testuser");
 
-        when(memberDao.existsByUsername("testuser")).thenReturn(false);
+        when(memberRepository.existsByUsername("testuser")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
         when(authMapper.toEntity(request, encodedPassword)).thenReturn(newMember);
-        when(memberDao.save(newMember)).thenReturn(savedMember);
+        when(memberRepository.save(newMember)).thenReturn(savedMember);
         when(authMapper.toResponse(savedMember)).thenReturn(signupResponse);
 
         // When
@@ -98,10 +100,10 @@ class AuthServiceTest {
         assertThat(response.getUsername()).isEqualTo("testuser");
         assertThat(response.getMessage()).isEqualTo("회원가입이 성공적으로 완료되었습니다.");
 
-        verify(memberDao).existsByUsername("testuser");
+        verify(memberRepository).existsByUsername("testuser");
         verify(passwordEncoder).encode("password123");
         verify(authMapper).toEntity(request, encodedPassword);
-        verify(memberDao, times(1)).save(newMember);
+        verify(memberRepository, times(1)).save(newMember);
         verify(authMapper).toResponse(savedMember);
     }
 
@@ -111,7 +113,7 @@ class AuthServiceTest {
         // Given
         // memberDao.existsByUsername()이 true를 반환하도록 설정
         SignupRequest request = new SignupRequest("testuser", "password123");
-        when(memberDao.existsByUsername("testuser")).thenReturn(true);
+        when(memberRepository.existsByUsername("testuser")).thenReturn(true);
 
         // When & Then
         // signup 호출 시 DuplicateResourceException 발생하는지 검증하세요
@@ -122,7 +124,7 @@ class AuthServiceTest {
 
         verify(passwordEncoder, never()).encode(anyString());
         verify(authMapper, never()).toEntity(any(), anyString());
-        verify(memberDao, never()).save(any());
+        verify(memberRepository, never()).save(any());
     }
 
     @Test
@@ -160,9 +162,9 @@ class AuthServiceTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
-        when(memberDao.findByUsername("testuser")).thenReturn(Optional.of(member));
+        when(memberRepository.findByUsername("testuser")).thenReturn(Optional.of(member));
         when(jwtTokenProvider.createAccessToken("testuser", "ROLE_USER")).thenReturn(accessToken);
-        when(jwtTokenProvider.createRefreshToken(1L, "testuser")).thenReturn(refreshToken);
+        when(jwtTokenProvider.createRefreshToken(member, "testuser")).thenReturn(refreshToken);
 
         // When
         LoginResponse response = authService.login(request);
@@ -177,9 +179,86 @@ class AuthServiceTest {
         assertThat(response.getUsername()).isEqualTo("testuser");
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(memberDao).findByUsername("testuser");
+        verify(memberRepository).findByUsername("testuser");
         verify(jwtTokenProvider).createAccessToken("testuser", "ROLE_USER");
-        verify(jwtTokenProvider).createRefreshToken(1L, "testuser");
-        verify(refreshTokenDao).saveRefreshToken(refreshToken);
+        verify(jwtTokenProvider).createRefreshToken(member, "testuser");
+        verify(refreshTokenRepository).deleteByMemberId(member.getId());
+        verify(refreshTokenRepository).flush();
+        verify(refreshTokenRepository).save(refreshToken);
+    }
+
+    @Test
+    @DisplayName("리프레시 토큰 재발급 성공")
+    void refresh_success() {
+        ReflectionTestUtils.setField(authService, "accessTokenExpiration", 1_800_000L);
+
+        String refreshTokenValue = "valid-refresh-token";
+        String newAccessToken = "new-access-token";
+        String newRefreshTokenValue = "new-refresh-token";
+
+        TokenRefreshRequest request = TokenRefreshRequest.builder()
+                .refreshToken(refreshTokenValue)
+                .build();
+
+        Member member = Member.builder()
+                .id(1L)
+                .username("testuser")
+                .password("encoded-password123")
+                .role(Role.USER)
+                .build();
+
+        RefreshToken storedRefreshToken = RefreshToken.builder()
+                .id(1L)
+                .member(member)
+                .token(refreshTokenValue)
+                .expiryDate(LocalDateTime.now().plusDays(7))
+                .build();
+
+        RefreshToken newRefreshToken = RefreshToken.builder()
+                .id(2L)
+                .member(member)
+                .token(newRefreshTokenValue)
+                .expiryDate(LocalDateTime.now().plusDays(7))
+                .build();
+
+        when(jwtTokenProvider.validateToken(refreshTokenValue)).thenReturn(true);
+        when(jwtTokenProvider.isRefreshToken(refreshTokenValue)).thenReturn(true);
+        when(refreshTokenRepository.findByToken(refreshTokenValue)).thenReturn(Optional.of(storedRefreshToken));
+        when(jwtTokenProvider.createAccessToken("testuser", "ROLE_USER")).thenReturn(newAccessToken);
+        when(jwtTokenProvider.createRefreshToken(member, "testuser")).thenReturn(newRefreshToken);
+
+        TokenRefreshResponse response = authService.refresh(request);
+
+        assertThat(response.getAccessToken()).isEqualTo(newAccessToken);
+        assertThat(response.getRefreshToken()).isEqualTo(newRefreshTokenValue);
+        assertThat(response.getTokenType()).isEqualTo("Bearer");
+        assertThat(response.getExpiresIn()).isEqualTo(1_800_000L);
+
+        verify(jwtTokenProvider).validateToken(refreshTokenValue);
+        verify(jwtTokenProvider).isRefreshToken(refreshTokenValue);
+        verify(refreshTokenRepository).findByToken(refreshTokenValue);
+        verify(jwtTokenProvider).createAccessToken("testuser", "ROLE_USER");
+        verify(jwtTokenProvider).createRefreshToken(member, "testuser");
+        verify(refreshTokenRepository).deleteByMemberId(member.getId());
+        verify(refreshTokenRepository).flush();
+        verify(refreshTokenRepository).save(newRefreshToken);
+    }
+
+    @Test
+    @DisplayName("로그아웃 성공 시 회원의 리프레시 토큰을 삭제한다")
+    void logout_success() {
+        Member member = Member.builder()
+                .id(1L)
+                .username("testuser")
+                .password("encoded-password123")
+                .role(Role.USER)
+                .build();
+
+        when(memberRepository.findByUsername("testuser")).thenReturn(Optional.of(member));
+
+        authService.logout("testuser");
+
+        verify(memberRepository).findByUsername("testuser");
+        verify(refreshTokenRepository).deleteByMemberId(member.getId());
     }
 }

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "password")
+@ToString(exclude = {"password", "refreshToken"})
 @EqualsAndHashCode(of = "id")
 public class Member {
     @Id
@@ -41,4 +41,7 @@ public class Member {
     @Version
     @Column(nullable = false)
     private Long version;
+
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    private RefreshToken refreshToken;
 }

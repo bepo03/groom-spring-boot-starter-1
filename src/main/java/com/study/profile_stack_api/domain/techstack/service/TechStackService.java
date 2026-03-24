@@ -1,7 +1,7 @@
 package com.study.profile_stack_api.domain.techstack.service;
 
-import com.study.profile_stack_api.domain.auth.dao.MemberDao;
 import com.study.profile_stack_api.domain.auth.entity.Member;
+import com.study.profile_stack_api.domain.auth.repository.MemberRepository;
 import com.study.profile_stack_api.domain.profile.entity.Profile;
 import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundException;
 import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
@@ -35,7 +35,7 @@ public class TechStackService {
     /** 의존성 주입 */
     private final TechStackDao techStackDao;
     private final ProfileRepository profileRepository;
-    private final MemberDao memberDao;
+    private final MemberRepository memberRepository;
     private final TechStackMapper techStackMapper;
 
     /** 페이징 관련 상수 */
@@ -355,7 +355,7 @@ public class TechStackService {
      * @return 회원 엔티티
      */
     private Member getCurrentMember(String username) {
-        return memberDao.findByUsername(username)
+        return memberRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthException("사용자를 찾을 수 없습니다."));
     }
 }
