@@ -14,6 +14,7 @@ import com.study.profile_stack_api.domain.auth.exception.InvalidTokenException;
 import com.study.profile_stack_api.domain.auth.mapper.AuthMapper;
 import com.study.profile_stack_api.domain.auth.repository.MemberRepository;
 import com.study.profile_stack_api.domain.auth.repository.RefreshTokenRepository;
+import com.study.profile_stack_api.global.discord.service.DiscordNotificationService;
 import com.study.profile_stack_api.global.exception.AuthException;
 import com.study.profile_stack_api.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthMapper authMapper;
+    private final DiscordNotificationService discordNotificationService;
 
     @Value("${jwt.access-token-expiration}")
     private long accessTokenExpiration;
@@ -110,6 +112,14 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Member newMember = authMapper.toEntity(request, encodedPassword);
         Member savedMember = memberRepository.save(newMember);
+
+        // Discord 알림 전송 (비동기)
+        try {
+            discordNotificationService.sendMemberCreatedNotification(savedMember);
+        } catch (Exception e) {
+            // Discord 실패가 메인 로직에 영향을 주지 않음
+            log.warn("Discord notification failed, but Member was created", e);
+        }
 
         log.info("Member registered successfully: {}", savedMember.getUsername());
 

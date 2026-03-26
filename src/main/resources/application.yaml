@@ -1,22 +1,128 @@
-# 서버 설정
-server:
-  port: 8080
-  servlet:
-    context-path: /
-
-# Spring 설정
+# ========================================
+# 공통 설정 (모든 프로필에 적용)
+# ========================================
 spring:
-  config:
-    import: optional:file:./.env[.properties]
-
   application:
     name: profile-stack-api
+  config:
+    import: optional:file:./.env[.properties]
+  profiles:
+    active: dev
 
+  # SQL 초기화 설정 (공통)
+  sql:
+    init:
+      mode: always
+      platform: mysql
+      encoding: utf-8
+
+# 서버 설정 (공통)
+server:
   servlet:
-    encoding:
-      charset: UTF-8
+    context-path: /
+  encoding:
+    charset: UTF-8
+    enabled: true
+    force: true
+
+# JWT 설정 (공통)
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 1_800_000    # 30분 (밀리초)
+  refresh-token-expiration: 604_800_000 # 7일 (밀리초)
+
+# Actuator 및 메트릭 설정 (공통)
+management:
+  # 엔드포인트 노출 설정
+  endpoints:
+    web:
+      exposure:
+        # 개발 환경에서는 전체 노출도 가능 (운영에서는 절대 사용 금지)
+        include: health, info, metrics, prometheus, loggers
+        exclude: shutdown
+      base-path: /actuator
+
+  # Actuator 전용 포트 분리 (보안상 강력 권장)
+  # 애플리케이션: 8080/8081, Actuator: 9090
+  server:
+    port: 9090
+
+  # Health 엔드포인트 상세 설정
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+  # Info 엔드포인트 설정
+  info:
+    env:
       enabled: true
-      force: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+    git:
+      mode: full
+
+  # 메트릭 태깅
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:default}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+# 애플리케이션 정보 (Info 엔드포인트 출력용)
+info:
+  app:
+    name: My Spring Profile & Tech Stack
+    description: Profile & Tech Stack Management System
+    version: '@project.version@'
+
+# Discord Webhook 설정 (공통)
+discord:
+  webhook:
+    url: ${DISCORD_WEBHOOK_URL}
+    enabled: ${DISCORD_WEBHOOK_ENABLED:false}
+    username: ${DISCORD_WEBHOOK_USERNAME}
+    avatar-url: ${DISCORD_WEBHOOK_AVATAR_URL}
+
+# SpringDoc OpenAPI 설정 (공통)
+springdoc:
+  # Swagger UI 경로 설정
+  swagger-ui:
+    path: /swagger-ui.html
+    # API 목록을 그룹별로 표시
+    groups-order: DESC
+    # 태그를 알파벳 순으로 정렬
+    tags-sorter: alpha
+    # 오퍼레이션을 HTTP 메서드 순으로 정렬
+    operations-sorter: method
+    # Try it out 기능 기본 활성화
+    disable-swagger-default-url: true
+    # 요청 소요 시간 표시
+    display-request-duration: true
+  # OpenAPI 문서 경로
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  # 패키지 경로 스캔 설정
+  packages-to-scan: com.study.profile_stack_api
+  # 기본 스프링 액추에이터 응답 제외
+  show-actuator: false
+
+---
+# ========================================
+# default 프로필 (프로필 미지정 시 기본 사용)
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: default
 
   # MySQL 데이터베이스 설정
   datasource:
@@ -31,57 +137,170 @@ spring:
       idle-timeout: 600_000
       pool-name: ProfileTechstackAPIHikariCP
 
-  # SQL 로깅 설정
-  sql:
-    init:
-      mode: always
-      platform: mysql
-      encoding: utf-8
-      schema-locations: classpath:db/schema.sql
-      data-locations: classpath:db/data.sql
-      continue-on-error: false
+# 기본 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.study.profile_stack_api: INFO
+    org.springframework.web: INFO
 
+server:
+  port: 8080
+
+---
+# ========================================
+# dev 프로필 (개발 환경 - 상세 로깅)
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # MySQL 데이터베이스 설정 (개발용)
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30_000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600_000
+      pool-name: ProfileTechstackAPIHikariCP-DEV
+      # 개발 환경용 추가 설정
+      register-mbeans: true
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 60_000
+      auto-commit: true
+      # MySQL 드라이버 상세 로깅
+      data-source-properties:
+        logger: com.mysql.cj.log.Slf4JLogger
+        profileSQL: true
+
+  # JPA 설정 (개발용)
   jpa:
-    hibernate:
-      ddl-auto: validate
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
-        default_batch_fetch_size: 100
-    open-in-view: false
+        use_sql_comments: true
 
-# 로깅 설정
+# 개발 환경 상세 로깅
 logging:
   level:
     root: INFO
     com.study.profile_stack_api: DEBUG
+
+    # Spring 프레임워크 로깅
     org.springframework.jdbc: DEBUG
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.jdbc.datasource: TRACE
+    org.springframework.boot.autoconfigure.jdbc: DEBUG
+
+    # HikariCP 상세 로깅
     com.zaxxer.hikari: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari.HikariDataSource: DEBUG
+    com.zaxxer.hikari.pool: DEBUG
 
-# JWT 설정
-jwt:
-  secret: ${SECRET_KEY}
-  access-token-expiration: 1_800_000    # 30분 (밀리초)
-  refresh-token-expiration: 604_800_000 # 7일 (밀리초)
+    # MySQL 드라이버 로깅
+    com.mysql.cj: DEBUG
+    com.mysql.cj.jdbc: TRACE
 
-# Swagger UI 설정 추가
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: method
-  api-docs:
-    path: /v3/api-docs
-  packages-to-scan: com.study.profile_stack_api
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# Discord Webhook 설정
-discord:
-  webhook:
-    url: ${DISCORD_WEBHOOK_URL}
-    enabled: ${DISCORD_WEBHOOK_ENABLED:false}
-    username: ${DISCORD_WEBHOOK_USERNAME}
-    avatar-url: ${DISCORD_WEBHOOK_AVATAR_URL}
+server:
+  port: 8081
+
+# 개발 도구 활성화
+debug: false
+trace: false
+
+---
+# ========================================
+# prod 프로필 (운영 환경 - 최소 로깅)
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # MySQL 데이터베이스 설정 (운영용)
+  datasource:
+    url: jdbc:mysql://${DB_HOST:prod-db-server}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:produser}
+    password: ${DB_PASSWORD:prodpass}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 20_000
+      maximum-pool-size: 20
+      minimum-idle: 10
+      idle-timeout: 300_000
+      pool-name: ProfileTechstackAPIHikariCP-PROD
+      max-lifetime: 1_800_000
+
+# 운영 환경 로깅 (최소화)
+logging:
+  level:
+    root: WARN
+    com.study.profile_stack_api: INFO
+    org.springframework: WARN
+    com.zaxxer.hikari: WARN
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger - %msg%n"
+  file:
+    name: logs/profile-tech-stack.log
+    max-size: 10MB
+    max-history: 30
+
+server:
+  port: 8080
+
+---
+# ========================================
+# test 프로필 (테스트 환경 - H2 인메모리 DB)
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  # H2 인메모리 데이터베이스 설정
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      connection-timeout: 10_000
+      maximum-pool-size: 5
+      minimum-idle: 2
+      pool-name: ProfileTechstackAPIHikariCP-TEST
+
+  # H2 콘솔 활성화
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # JPA 설정 (테스트용)
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+# 테스트 환경 로깅
+logging:
+  level:
+    root: INFO
+    com.study.profile_stack_api: DEBUG
+    org.springframework.test: DEBUG
+    org.springframework.jdbc: DEBUG
+    com.zaxxer.hikari: INFO
+
+server:
+  port: 8082

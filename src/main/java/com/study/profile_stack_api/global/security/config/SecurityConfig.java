@@ -68,6 +68,9 @@ public class SecurityConfig {
                                 // Swagger UI 및 API 문서 접근 허용
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
+                                // Discord API Test 허용
+                                .requestMatchers(HttpMethod.POST, "/api/v1/discord/test").permitAll()
+
                                 // 프로필 생성은 로그인한 사용자만 가능
                                 .requestMatchers(HttpMethod.POST, "/api/v1/profiles").authenticated()
 
