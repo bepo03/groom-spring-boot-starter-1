@@ -16,6 +16,7 @@ import com.study.profile_stack_api.domain.profile.exception.ProfileNotFoundExcep
 import com.study.profile_stack_api.domain.profile.mapper.ProfileMapper;
 import com.study.profile_stack_api.domain.profile.repository.ProfileRepository;
 import com.study.profile_stack_api.global.common.Page;
+import com.study.profile_stack_api.global.discord.service.DiscordNotificationService;
 import com.study.profile_stack_api.global.exception.AuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final ProfileMapper profileMapper;
     private final MemberRepository memberRepository;
+    private final DiscordNotificationService discordNotificationService;
 
     /** 페이징 관련 상수 */
     private static final int MAX_PAGE_SIZE = 100;
@@ -63,6 +65,14 @@ public class ProfileService {
 
         // 저장
         Profile savedProfile = profileRepository.save(profile);
+
+        // Discord 알림 전송 (비동기)
+        try {
+            discordNotificationService.sendProfileCreatedNotification(savedProfile);
+        } catch (Exception e) {
+            // Discord 실패가 메인 로직에 영향을 주지 않음
+            log.warn("Discord notification failed, but Profile was created", e);
+        }
 
         // Entity -> Response DTO 변환 후 반환
         return profileMapper.toResponse(savedProfile);
@@ -317,6 +327,15 @@ public class ProfileService {
 
         // 저장 및 응답 반환
         Profile updatedProfile = profileRepository.save(profile);
+
+        // Discord 알림 전송 (비동기)
+        try {
+            discordNotificationService.sendProfileUpdatedNotification(updatedProfile);
+        } catch (Exception e) {
+            // Discord 실패가 메인 로직에 영향을 주지 않음
+            log.warn("Discord notification failed, but Profile was updated", e);
+        }
+
         return profileMapper.toResponse(updatedProfile);
     }
 
@@ -340,6 +359,16 @@ public class ProfileService {
 
         // 삭제 수행
         profileRepository.delete(profile);
+
+        // Discord 알림 전송 (비동기)
+        try {
+            Long profileId = profile.getId();
+            String profileName = profile.getName();
+            discordNotificationService.sendProfileDeletedNotification(profileId, profileName);
+        } catch (Exception e) {
+            // Discord 실패가 메인 로직에 영향을 주지 않음
+            log.warn("Discord notification failed, but Profile was deleted", e);
+        }
 
         // 삭제 결과 반환
         return ProfileDeleteResponse.of(id, true);

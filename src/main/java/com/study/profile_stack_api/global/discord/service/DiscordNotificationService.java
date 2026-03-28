@@ -1,8 +1,11 @@
 package com.study.profile_stack_api.global.discord.service;
 
 import com.study.profile_stack_api.domain.auth.entity.Member;
+import com.study.profile_stack_api.domain.profile.entity.Profile;
 import com.study.profile_stack_api.global.discord.dto.DiscordWebhookMessage;
-import com.study.profile_stack_api.global.discord.dto.DiscordWebhookMessage.*;
+import com.study.profile_stack_api.global.discord.dto.DiscordWebhookMessage.Embed;
+import com.study.profile_stack_api.global.discord.dto.DiscordWebhookMessage.Field;
+import com.study.profile_stack_api.global.discord.dto.DiscordWebhookMessage.Footer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -67,9 +71,9 @@ public class DiscordNotificationService {
         try {
             DiscordWebhookMessage message = createMemberEmbed(
                     member,
-                    "신규 회원가입",
+                    "신규 회원가입 ✨",
                     COLOR_SUCCESS,
-                    "✨ New Member"
+                    "New Member"
             );
 
             sendWebhookMessage(message);
@@ -78,6 +82,108 @@ public class DiscordNotificationService {
             // Discord 알림 실패가 메인 비즈니스 로직에 영향을 주면 안됨
             log.error("Failed to send Discord notification for Member ID: {}", member.getId());
 
+        }
+    }
+
+    /**
+     * 새로운 Profile 생성 알림
+     *
+     * @Async를 사용하여 비동기로 처리 (메인 로직을 블로킹하지 않음)
+     *
+     * @param profile 생성된 Profile 엔티티
+     */
+    @Async
+    public void sendProfileCreatedNotification(Profile profile) {
+        if (!webhookEnabled) {
+            log.debug("Discord webhook is disabled. Skipping notification.");
+            return;
+        }
+
+        try {
+            DiscordWebhookMessage message = createProfileEmbed(
+                    profile,
+                    "새로운 프로필이 생성되었습니다!",
+                    COLOR_SUCCESS,
+                    "✨ Created Profile"
+            );
+
+            sendWebhookMessage(message);
+            log.info("Successfully sent Discord notification for Profile ID: {}", profile.getId());
+        } catch (Exception e) {
+            // Discord 알림 실패가 메인 비즈니스 로직에 영향을 주면 안됨
+            log.error("Failed to send Discord notification for Profile ID: {}", profile.getId(), e);
+
+        }
+    }
+
+    /**
+     * Profile 수정 알림
+     *
+     * @param profile 수정된 Profile 엔티티
+     */
+    @Async
+    public void sendProfileUpdatedNotification(Profile profile) {
+        if (!webhookEnabled) {
+            log.debug("Discord webhook is disabled. Skipping notification.");
+            return;
+        }
+
+        try {
+            DiscordWebhookMessage message = createProfileEmbed(
+                    profile,
+                    "프로필이 수정되었습니다.",
+                    COLOR_INFO,
+                    "📝 Update Profile"
+            );
+
+            sendWebhookMessage(message);
+        } catch (Exception e) {
+            log.error("Failed to send Discord update notification for Profile ID: {}", profile.getId(), e);
+        }
+    }
+
+    /**
+     * Profile 삭제 알림
+     *
+     * @param profileId 삭제된 Profile ID
+     * @param username 삭제된 Profile 사용자 이름
+     */
+    @Async
+    public void sendProfileDeletedNotification(Long profileId, String username) {
+        if (!webhookEnabled) {
+            log.debug("Discord webhook is disabled. Skipping notification.");
+            return;
+        }
+
+        try {
+            DiscordWebhookMessage message = DiscordWebhookMessage.builder()
+                    .username(botUsername)
+                    .avatarUrl(avatarUrl)
+                    .embeds(List.of(
+                            Embed.builder()
+                                    .title("🗑️ Profile Deleted")
+                                    .description("프로필이 삭제되었습니다.")
+                                    .color(COLOR_WARNING)
+                                    .fields(List.of(
+                                            Field.builder()
+                                                    .name("ID")
+                                                    .value(String.valueOf(profileId))
+                                                    .inline(true)
+                                                    .build(),
+                                            Field.builder()
+                                                    .name("이름")
+                                                    .value(username)
+                                                    .inline(true)
+                                                    .build()
+                                    ))
+                                    .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                                    .build()
+                    ))
+                    .build();
+
+            sendWebhookMessage(message);
+        } catch (Exception e) {
+            log.error("Failed to send Discord delete notification for Profile ID: {}", profileId, e);
         }
     }
 
@@ -94,14 +200,16 @@ public class DiscordNotificationService {
         List<Field> fields = new ArrayList<>();
 
         fields.add(Field.builder()
-                .name("이름")
+                .name("👤 이름")
                 .value(member.getUsername())
                 .inline(false)
                 .build());
 
         fields.add(Field.builder()
-                .name("권한")
-                .value(member.getRole().name())
+                .name("🛡️ 권한")
+                .value(member.getRole().getIcon() + " " +
+                        member.getRole().name())
+                .inline(true)
                 .build());
 
         // Embed 생성
@@ -110,9 +218,90 @@ public class DiscordNotificationService {
                 .color(color)
                 .fields(fields)
                 .footer(Footer.builder()
-                        .text(footerText + " | ID: " + member.getId())
+                        .text(footerText + " ID: " + member.getId() + " | ")
                         .build())
-                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .timestamp(Instant.now().toString())
+                .build();
+
+        // 메시지 생성
+        return DiscordWebhookMessage.builder()
+                .username(botUsername)
+                .avatarUrl(avatarUrl)
+                .embeds(List.of(embed))
+                .build();
+    }
+
+    /**
+     * Profile를 Discord Embed 메시지로 변환
+     *
+     * @param profile Profile 엔티티
+     * @param title Embed 제목
+     * @param color Embed 색상
+     * @param footerText 푸터 텍스트
+     * @return Discord 메시지 객체
+     */
+    private DiscordWebhookMessage createProfileEmbed(Profile profile, String title, int color, String footerText) {
+        List<Field> fields = new ArrayList<>();
+
+        fields.add(Field.builder()
+                .name("👤 이름")
+                .value(profile.getName())
+                .inline(true)
+                .build());
+
+        fields.add(Field.builder()
+                .name("📧 이메일")
+                .value(profile.getEmail())
+                .inline(true)
+                .build());
+
+        String bio = profile.getBio();
+        if (bio != null && bio.length() > 100) {
+            bio = bio.substring(0, 97) + "...";
+        }
+
+        fields.add(Field.builder()
+                .name("📝 소개")
+                .value(bio != null ? bio : "자기소개 없음")
+                .inline(false)
+                .build());
+
+        fields.add(Field.builder()
+                .name("💼 포지션")
+                .value(profile.getPosition().getIcon() + " " +
+                        profile.getPosition().getDescription())
+                .inline(true)
+                .build());
+
+        fields.add(Field.builder()
+                .name("📈 경력")
+                .value(profile.getCareerYears() + "년")
+                .inline(true)
+                .build());
+
+        String githubUrl = profile.getGithubUrl();
+        fields.add(Field.builder()
+                .name("🐙 GitHub")
+                .value(githubUrl != null ? githubUrl : "Github 주소 없음")
+                .inline(false)
+                .build());
+
+        String blogUrl = profile.getBlogUrl();
+        fields.add(Field.builder()
+                .name("🔗 블로그")
+                .value(blogUrl != null ? blogUrl : "블로그 주소 없음")
+                .inline(false)
+                .build());
+
+        // Embed 생성
+        Embed embed = Embed.builder()
+                .title(title)
+                .color(color)
+                .fields(fields)
+                .footer(Footer.builder()
+                        .text(footerText + " ID: " + profile.getId() + " | ")
+                        .build())
+                .timestamp(Instant.now().toString())
                 .build();
 
         // 메시지 생성

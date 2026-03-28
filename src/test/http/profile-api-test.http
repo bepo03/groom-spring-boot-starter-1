@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:8080
+@baseUrl = http://localhost:8081
 
 ### 전체 프로필 조회
 GET {{baseUrl}}/api/v1/profiles
@@ -6,7 +6,7 @@ GET {{baseUrl}}/api/v1/profiles
 ### 프로필 생성
 POST {{baseUrl}}/api/v1/profiles
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "name": "API Tester",
@@ -21,7 +21,7 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST
 ### 프로필 생성 실패
 POST {{baseUrl}}/api/v1/profiles
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "name": "",
@@ -48,7 +48,7 @@ GET {{baseUrl}}/api/v1/profiles?page=0&size=5
 ### 프로필 수정
 PUT {{baseUrl}}/api/v1/profiles/1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "bio": "updated by HTTP client",
@@ -58,7 +58,7 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST
 ### 프로필 수정 실패
 PUT {{baseUrl}}/api/v1/profiles/999999
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "bio": "not found profile"
@@ -66,8 +66,8 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST
 
 ### 프로필 삭제
 DELETE {{baseUrl}}/api/v1/profiles/1
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 ### 프로필 삭제 실패
 DELETE {{baseUrl}}/api/v1/profiles/999999
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken

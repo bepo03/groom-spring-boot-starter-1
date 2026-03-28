@@ -15,6 +15,8 @@ spring:
       mode: always
       platform: mysql
       encoding: utf-8
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
 
 # 서버 설정 (공통)
 server:
@@ -156,6 +158,10 @@ spring:
     activate:
       on-profile: dev
 
+  sql:
+    init:
+      mode: always
+
   # MySQL 데이터베이스 설정 (개발용)
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -226,6 +232,10 @@ spring:
   config:
     activate:
       on-profile: prod
+
+  sql:
+    init:
+      mode: never
 
   # MySQL 데이터베이스 설정 (운영용)
   datasource:

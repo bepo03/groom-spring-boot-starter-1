@@ -1,5 +1,9 @@
 @baseUrl = http://localhost:8081
 
+### 디스코드 봇 테스트
+POST {{baseUrl}}/api/v1/discord/test
+Content-Type: application/json
+
 ### 회원가입
 POST {{baseUrl}}/api/v1/auth/signup
 Content-Type: application/json
@@ -32,7 +36,7 @@ POST {{baseUrl}}/api/v1/auth/refresh
 Content-Type: application/json
 
 {
-  "refreshToken": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NzM2NzI0NTksImV4cCI6MTc3NDI3NzI1OX0.iVaE9f6PbVKU1gknQS9ZlAMrcaEp3QL7Gp3QIsoF8r438ysFwlg_OlPSetQqOW18"
+  "refreshToken": "YourRefreshToken"
 }
 
 ### 토큰 재발급 실패
@@ -45,7 +49,7 @@ Content-Type: application/json
 
 ### 로그아웃
 POST {{baseUrl}}/api/v1/auth/logout
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 ### 로그아웃 실패
 POST {{baseUrl}}/api/v1/auth/logout

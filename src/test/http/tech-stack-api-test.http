@@ -1,9 +1,9 @@
-@baseUrl = http://localhost:8080
+@baseUrl = http://localhost:8081
 
 ### 기술 스택 생성
 POST {{baseUrl}}/api/v1/profiles/1/tech-stacks
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "name": "Java",
@@ -15,7 +15,7 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST
 ### 기술 스택 생성 실패
 POST {{baseUrl}}/api/v1/profiles/999999/tech-stacks
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "name": "",
@@ -42,7 +42,7 @@ GET {{baseUrl}}/api/v1/profiles/1/tech-stacks?category=LANGUAGE&proficiency=ADVA
 ### 기술 스택 수정
 PUT {{baseUrl}}/api/v1/profiles/1/tech-stacks/1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "proficiency": "INTERMEDIATE",
@@ -52,7 +52,7 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST
 ### 기술 스택 수정 실패
 PUT {{baseUrl}}/api/v1/profiles/1/tech-stacks/999999
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 {
   "proficiency": "INTERMEDIATE"
@@ -60,8 +60,8 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST
 
 ### 기술 스택 삭제
 DELETE {{baseUrl}}/api/v1/profiles/1/tech-stacks/1
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
 
 ### 기술 스택 삭제 실패
 DELETE {{baseUrl}}/api/v1/profiles/1/tech-stacks/999999
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJqYXZha2ltIiwicm9sZXMiOiJST0xFX1VTRVIsRkFDVE9SX1BBU1NXT1JEIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3MzY3MjEwNiwiZXhwIjoxNzczNjczOTA2fQ.Isuz8yk72-t4M17bPMSINno1Q38Yf4h8w33oN8NmrXWX8ZJL2f2TjwIV1f38aZ6G
+Authorization: Bearer YourAccessToken
