@@ -147,7 +147,7 @@ logging:
     org.springframework.web: INFO
 
 server:
-  port: 8080
+  port: ${APP_PORT}
 
 ---
 # ========================================
@@ -218,7 +218,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 server:
-  port: 8081
+  port: ${APP_PORT_DEV}
 
 # 개발 도구 활성화
 debug: false
@@ -267,7 +267,7 @@ logging:
     max-history: 30
 
 server:
-  port: 8080
+  port: ${APP_PORT_PROD}
 
 ---
 # ========================================
@@ -313,4 +313,4 @@ logging:
     com.zaxxer.hikari: INFO
 
 server:
-  port: 8082
+  port: ${APP_PORT_TEST}

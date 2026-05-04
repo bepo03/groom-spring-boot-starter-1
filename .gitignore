@@ -50,3 +50,7 @@ out/
 
 # Logs
 *.log
+
+# k6 generated reports
+k6/summary*.json
+summary*.json
